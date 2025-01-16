@@ -1,0 +1,24 @@
+@layer tailwind-base, primevue, primevue-icons, tailwind-components, custom, tailwind-utilities;
+@import 'primeicons/primeicons.css' layer(primevue-icons);
+
+@layer tailwind-base {
+  @tailwind base;
+}
+
+@layer tailwind-components {
+  @tailwind components;
+}
+
+@layer custom {
+  .section {
+    @apply px-3 py-4;
+  }
+
+  .heading {
+    @apply text-xl font-bold;
+  }
+}
+
+@layer tailwind-utilities {
+  @tailwind utilities;
+}
