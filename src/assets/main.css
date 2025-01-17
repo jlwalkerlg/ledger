@@ -17,6 +17,18 @@
   .heading {
     @apply text-xl font-bold;
   }
+
+  .primary-link {
+    @apply text-primary font-medium;
+  }
+
+  .primary-link:not(:disabled) {
+    @apply hover:underline;
+  }
+
+  .primary-link:disabled {
+    @apply opacity-60;
+  }
 }
 
 @layer tailwind-utilities {

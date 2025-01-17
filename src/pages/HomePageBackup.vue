@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import AppLayout from '@/components/AppLayout.vue'
 import AppPanel from '@/components/AppPanel.vue'
-import type { Investment } from '@/components/InvestmentModal.vue'
-import InvestmentsTable from '@/components/InvestmentsTable.vue'
 import { toGbp } from '@/utils/formatters'
-import { addPercentage, aerToMonthly, percentageOf } from '@/utils/maths'
+import { aerToMonthly } from '@/utils/maths'
 import {
   Checkbox,
   InputGroup,
@@ -18,18 +16,23 @@ import { computed, ref } from 'vue'
 
 const years = ref(10)
 
-const investments = ref<Investment[]>([
-  {
-    name: 'House',
-    initialValue: 144444,
-    purchaseFeePercentage: 5,
-    annualGrowthRatePercentage: 3,
-    monthlyGrowthRatePercentage: aerToMonthly(3),
-    annualMaintenanceCostPercentage: 1,
-    monthlyMaintenanceCostPercentage: aerToMonthly(1),
-    cashOutFeePercentage: 5,
-  },
-])
+const propertyInitialValue = ref(144444)
+const propertyPurchaseFeePercentage = ref(5)
+const propertyAnnualAppreciationRatePercentage = ref(3)
+const propertyAnnualMaintenanceCostPercentage = ref(1)
+const propertyCashOutFeePercentage = ref(5)
+
+const propertyInitialPurchasePrice = computed(
+  () => propertyInitialValue.value * (1 + propertyPurchaseFeePercentage.value / 100),
+)
+
+const propertyMonthlyMaintenanceCostPercentage = computed(() =>
+  aerToMonthly(propertyAnnualMaintenanceCostPercentage.value),
+)
+
+const propertyMonthlyAppreciationRatePercentage = computed(() =>
+  aerToMonthly(propertyAnnualAppreciationRatePercentage.value),
+)
 
 const mortgageAmount = ref(130000)
 const mortgageInterestRate = ref(4.5)
@@ -46,15 +49,8 @@ const mortgageMonthlyPayment = computed(() => {
   return monthlyPayment
 })
 
-const totalInvestmentsInitialPurchasePrice = computed(() =>
-  investments.value.reduce(
-    (prev, curr) => prev + addPercentage(curr.initialValue, curr.purchaseFeePercentage),
-    0,
-  ),
-)
-
 const intitialCashBalance = computed(
-  () => totalInvestmentsInitialPurchasePrice.value - mortgageAmount.value,
+  () => propertyInitialPurchasePrice.value - mortgageAmount.value,
 )
 
 const cols = ref({
@@ -64,8 +60,15 @@ const cols = ref({
   day: false,
   month: false,
   year: false,
-  mortgageDebt: false,
-  mortgagePaid: false,
+  propertyValue: true,
+  propertyPurchaseFee: true,
+  propertyPurchasePrice: true,
+  propertyMonthlyMaintenaceCost: false,
+  propertyMaintenanceCashSpent: true,
+  propertyClosingFees: true,
+  propertyCashOutValue: true,
+  mortgageDebt: true,
+  mortgagePaid: true,
   cashAvailable: true,
   cashSpent: true,
   cashProfit: true,
@@ -74,38 +77,11 @@ const cols = ref({
 const groupBy = ref('years')
 
 const breakdown = computed(() => {
-  const investmentsBreakdown = investments.value.map((investment) => {
-    const name = investment.name
-    const value = investment.initialValue
-    const purchaseFeePercentage = investment.purchaseFeePercentage
-    const purchaseFee = percentageOf(investment.initialValue, investment.purchaseFeePercentage)
-    const purchasePrice = value + purchaseFee
-    const monthlyGrowthRatePercentage = investment.monthlyGrowthRatePercentage
-    const maintenanceCashSpent = 0
-    const monthlyMaintenanceCostPercentage = investment.monthlyMaintenanceCostPercentage
-    const monthlyMaintenanceCost = percentageOf(
-      investment.initialValue,
-      investment.monthlyMaintenanceCostPercentage,
-    )
-    const cashOutFeePercentage = investment.cashOutFeePercentage
-    const cashOutFee = percentageOf(investment.initialValue, investment.cashOutFeePercentage)
-    const cashOutValue = value - cashOutFee
+  let propertyValue = propertyInitialValue.value
 
-    return {
-      name,
-      value,
-      purchaseFeePercentage,
-      purchaseFee,
-      purchasePrice,
-      monthlyGrowthRatePercentage,
-      maintenanceCashSpent,
-      monthlyMaintenanceCostPercentage,
-      monthlyMaintenanceCost,
-      cashOutFeePercentage,
-      cashOutFee,
-      cashOutValue,
-    }
-  })
+  let propertyMaintenanceCashSpent = 0
+  let propertyMonthlyMaintenaceCost =
+    propertyValue * (propertyMonthlyMaintenanceCostPercentage.value / 100)
 
   let mortgageDebt = mortgageAmount.value
   let mortgagePaid = 0
@@ -122,29 +98,12 @@ const breakdown = computed(() => {
     const isFirstDayOfMonth = day % 30 === 1
 
     if (isFirstDayOfMonth && months > 0) {
-      for (const investmentBreakdown of investmentsBreakdown) {
-        investmentBreakdown.maintenanceCashSpent += investmentBreakdown.monthlyMaintenanceCost
-        investmentBreakdown.value = addPercentage(
-          investmentBreakdown.value,
-          investmentBreakdown.monthlyGrowthRatePercentage,
-        )
-        investmentBreakdown.monthlyMaintenanceCost = percentageOf(
-          investmentBreakdown.value,
-          investmentBreakdown.monthlyMaintenanceCostPercentage,
-        )
-        investmentBreakdown.purchaseFee = percentageOf(
-          investmentBreakdown.value,
-          investmentBreakdown.purchaseFeePercentage,
-        )
-        investmentBreakdown.purchasePrice =
-          investmentBreakdown.value + investmentBreakdown.purchaseFee
-        investmentBreakdown.cashOutFee = percentageOf(
-          investmentBreakdown.value,
-          investmentBreakdown.cashOutFeePercentage,
-        )
-        investmentBreakdown.cashOutValue =
-          investmentBreakdown.value - investmentBreakdown.cashOutFee
-      }
+      propertyMaintenanceCashSpent += propertyMonthlyMaintenaceCost
+
+      propertyValue *= 1 + propertyMonthlyAppreciationRatePercentage.value / 100
+
+      propertyMonthlyMaintenaceCost =
+        propertyValue * (propertyMonthlyMaintenanceCostPercentage.value / 100)
 
       if (years <= mortgageTerm.value) {
         mortgageDebt *= 1 + mortgageInterestRate.value / 100 / 12
@@ -154,20 +113,16 @@ const breakdown = computed(() => {
       }
     }
 
-    const totalInvestmentsCashOutValue = investmentsBreakdown.reduce(
-      (prev, curr) => prev + curr.cashOutValue,
-      0,
-    )
-    const totalInvestmentsMaintenanceCashSpent = investmentsBreakdown.reduce(
-      (prev, curr) => prev + curr.maintenanceCashSpent,
-      0,
-    )
+    const propertyPurchaseFee = propertyValue * (propertyPurchaseFeePercentage.value / 100)
+    const propertyPurchasePrice = propertyValue + propertyPurchaseFee
+    const propertyCashOutFee = propertyValue * (propertyCashOutFeePercentage.value / 100)
+    const propertyCashOutValue = propertyValue - propertyCashOutFee
 
-    const cashAvailable = totalInvestmentsCashOutValue - mortgageDebt
+    const cashAvailable = propertyCashOutValue - mortgageDebt
     const cashSpent =
-      totalInvestmentsInitialPurchasePrice.value -
+      propertyInitialPurchasePrice.value -
       mortgageAmount.value +
-      totalInvestmentsMaintenanceCashSpent +
+      propertyMaintenanceCashSpent +
       mortgagePaid
     const cashProfit = cashAvailable - cashSpent
 
@@ -178,16 +133,13 @@ const breakdown = computed(() => {
       day,
       month,
       year,
-      investments: investmentsBreakdown.map((data) => ({
-        name: data.name,
-        value: toGbp(data.value),
-        purchaseFee: toGbp(data.purchaseFee),
-        purchasePrice: toGbp(data.purchasePrice),
-        monthlyMaintenanceCost: toGbp(data.monthlyMaintenanceCost),
-        maintenanceCashSpent: toGbp(data.maintenanceCashSpent),
-        cashOutFee: toGbp(data.cashOutFee),
-        cashOutValue: toGbp(data.cashOutValue),
-      })),
+      propertyValue: toGbp(propertyValue),
+      propertyPurchaseFee: toGbp(propertyPurchaseFee),
+      propertyPurchasePrice: toGbp(propertyPurchasePrice),
+      propertyMonthlyMaintenaceCost: toGbp(propertyMonthlyMaintenaceCost),
+      propertyMaintenanceCashSpent: toGbp(propertyMaintenanceCashSpent),
+      propertyClosingFees: toGbp(propertyCashOutFee),
+      propertyCashOutValue: toGbp(propertyCashOutValue),
       mortgageDebt: toGbp(Math.max(0, mortgageDebt)),
       mortgagePaid: toGbp(mortgagePaid),
       cashAvailable: toGbp(cashAvailable),
@@ -228,7 +180,152 @@ const rows = computed(() => {
         </div>
       </AppPanel>
 
-      <InvestmentsTable v-model="investments" />
+      <AppPanel heading="Property" expandable expanded>
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <label for="property_initial_value">Value</label>
+            <InputGroup>
+              <InputGroupAddon>£</InputGroupAddon>
+              <InputNumber
+                input-id="property_initial_value"
+                v-model="propertyInitialValue"
+                :min-fraction-digits="2"
+                :max-fraction-digits="2"
+              />
+            </InputGroup>
+            <Message size="small" severity="secondary" variant="simple">
+              Enter the initial value of your property.
+            </Message>
+          </div>
+
+          <div class="space-y-2">
+            <label for="property_purchase_fee_percentage">Purchase Fee</label>
+            <InputGroup>
+              <InputNumber
+                input-id="property_purchase_fee_percentage"
+                v-model="propertyPurchaseFeePercentage"
+                :max-fraction-digits="2"
+              />
+              <InputGroupAddon>%</InputGroupAddon>
+            </InputGroup>
+            <Message size="small" severity="secondary" variant="simple">
+              Enter the fee associated with purchasing the property as a percentage of the property
+              value.
+            </Message>
+          </div>
+
+          <div class="space-y-2">
+            <label for="property_initial_purchase_price">Purchase Price</label>
+            <InputGroup>
+              <InputGroupAddon>£</InputGroupAddon>
+              <InputNumber
+                input-id="property_initial_purchase_price"
+                :model-value="propertyInitialPurchasePrice"
+                disabled
+                :min-fraction-digits="2"
+                :max-fraction-digits="2"
+              />
+            </InputGroup>
+            <Message size="small" severity="secondary" variant="simple">
+              This is the total amount that it cost to buy the property, including its value and any
+              purchase fee.
+            </Message>
+          </div>
+
+          <div class="space-y-2">
+            <label for="property_annual_maintenance_cost_percentage">
+              Annual Maintenance Cost
+            </label>
+            <InputGroup>
+              <InputNumber
+                input-id="property_annual_maintenance_cost_percentage"
+                v-model="propertyAnnualMaintenanceCostPercentage"
+                :min="0"
+                :max="100"
+                :max-fraction-digits="2"
+              />
+              <InputGroupAddon>%</InputGroupAddon>
+            </InputGroup>
+            <Message size="small" severity="secondary" variant="simple">
+              Enter the estimated cost of maintaining the property each year as a percentage of the
+              property.
+            </Message>
+          </div>
+
+          <div class="space-y-2">
+            <label for="property_monthly_maintenance_cost_percentage">
+              Monthly Maintenance Cost
+            </label>
+            <InputGroup>
+              <InputNumber
+                input-id="property_monthly_maintenance_cost_percentage"
+                :model-value="propertyMonthlyMaintenanceCostPercentage"
+                disabled
+                :max-fraction-digits="2"
+              />
+              <InputGroupAddon>%</InputGroupAddon>
+            </InputGroup>
+            <Message size="small" severity="secondary" variant="simple">
+              This is the cost of maintaining the property each month as a percentage of the
+              property.
+            </Message>
+          </div>
+
+          <div class="space-y-2">
+            <label for="property_annual_appreciation_rate_percentage"
+              >Annual Appreciation Rate</label
+            >
+            <InputGroup>
+              <InputNumber
+                input-id="property_annual_appreciation_rate_percentage"
+                v-model="propertyAnnualAppreciationRatePercentage"
+                :max="100"
+                :max-fraction-digits="2"
+              />
+              <InputGroupAddon>%</InputGroupAddon>
+            </InputGroup>
+            <Message size="small" severity="secondary" variant="simple">
+              Enter the expected appreciation rate of your property.
+            </Message>
+          </div>
+
+          <div class="space-y-2">
+            <label for="property_monthly_appreciation_rate_percentage">
+              Monthly Appreciation Rate
+            </label>
+            <InputGroup>
+              <InputNumber
+                input-id="property_monthly_appreciation_rate_percentage"
+                :model-value="propertyMonthlyAppreciationRatePercentage"
+                disabled
+                :max-fraction-digits="2"
+              />
+              <InputGroupAddon>%</InputGroupAddon>
+            </InputGroup>
+            <Message size="small" severity="secondary" variant="simple">
+              Enter the expected appreciation rate of your property.
+            </Message>
+          </div>
+
+          <div class="space-y-2">
+            <label for="property_cash_out_fee_percentage">Cash Out Fee</label>
+            <InputGroup>
+              <InputNumber
+                input-id="property_cash_out_fee_percentage"
+                v-model="propertyCashOutFeePercentage"
+                :min="0"
+                :max="100"
+                :max-fraction-digits="2"
+              />
+              <InputGroupAddon>%</InputGroupAddon>
+            </InputGroup>
+            <Message size="small" severity="secondary" variant="simple">
+              Enter the fee associated with selling the property as a percentage of the property
+              value.
+            </Message>
+          </div>
+        </div>
+      </AppPanel>
 
       <AppPanel heading="Mortgage" expandable expanded>
         <div class="space-y-4">
@@ -357,6 +454,69 @@ const rows = computed(() => {
               </div>
 
               <div class="flex items-center gap-2">
+                <Checkbox v-model="cols.propertyValue" binary input-id="property_value_col" />
+                <label for="property_value_col">Property Value</label>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <Checkbox
+                  v-model="cols.propertyPurchaseFee"
+                  binary
+                  input-id="property_purchase_fee_col"
+                />
+                <label for="property_purchase_fee_col">Property Purchase Fee</label>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <Checkbox
+                  v-model="cols.propertyPurchasePrice"
+                  binary
+                  input-id="property_purchase_price_col"
+                />
+                <label for="property_purchase_price_col">Property Purchase Price</label>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <Checkbox
+                  v-model="cols.propertyMonthlyMaintenaceCost"
+                  binary
+                  input-id="property_monthly_maintenace_cost_col"
+                />
+                <label for="property_monthly_maintenace_cost_col"
+                  >Property Monthly Maintenace Cost</label
+                >
+              </div>
+
+              <div class="flex items-center gap-2">
+                <Checkbox
+                  v-model="cols.propertyMaintenanceCashSpent"
+                  binary
+                  input-id="property_maintenance_cash_spent_col"
+                />
+                <label for="property_maintenance_cash_spent_col"
+                  >Property Maintenance Cash Spent</label
+                >
+              </div>
+
+              <div class="flex items-center gap-2">
+                <Checkbox
+                  v-model="cols.propertyClosingFees"
+                  binary
+                  input-id="property_closing_fees_col"
+                />
+                <label for="property_closing_fees_col">Property Closing Fees</label>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <Checkbox
+                  v-model="cols.propertyCashOutValue"
+                  binary
+                  input-id="property_cash_out_value_col"
+                />
+                <label for="property_cash_out_value_col">Property Cash Out Value</label>
+              </div>
+
+              <div class="flex items-center gap-2">
                 <Checkbox v-model="cols.mortgageDebt" binary input-id="mortgage_debt_col" />
                 <label for="mortgage_debt_col">Mortgage Debt</label>
               </div>
@@ -427,15 +587,13 @@ const rows = computed(() => {
               <th v-if="cols.day">Day</th>
               <th v-if="cols.month">Month</th>
               <th v-if="cols.year">Year</th>
-              <template v-for="investment of investments" :key="investment.name">
-                <th>{{ investment.name }} Value</th>
-                <th>{{ investment.name }} Purchase Fee</th>
-                <th>{{ investment.name }} Purchase Price</th>
-                <th>{{ investment.name }} Monthly Maintenance Cost</th>
-                <th>{{ investment.name }} Maintenance Cash Spent</th>
-                <th>{{ investment.name }} Cash Out Fee</th>
-                <th>{{ investment.name }} Cash Out Value</th>
-              </template>
+              <th v-if="cols.propertyValue">Property Value</th>
+              <th v-if="cols.propertyPurchaseFee">Property Purchase Fee</th>
+              <th v-if="cols.propertyPurchasePrice">Property Purchase Price</th>
+              <th v-if="cols.propertyMonthlyMaintenaceCost">Property Monthly Maintenance Cost</th>
+              <th v-if="cols.propertyMaintenanceCashSpent">Property Maintenance Cash Spent</th>
+              <th v-if="cols.propertyClosingFees">Property Cash Out Fee</th>
+              <th v-if="cols.propertyCashOutValue">Property Cash Out Value</th>
               <th v-if="cols.mortgageDebt">Mortgage Debt</th>
               <th v-if="cols.mortgagePaid">Mortgage Paid</th>
               <th v-if="cols.cashAvailable">
@@ -481,19 +639,17 @@ const rows = computed(() => {
               <td v-if="cols.day">{{ row.day }}</td>
               <td v-if="cols.month">{{ row.month }}</td>
               <td v-if="cols.year">{{ row.year }}</td>
-              <template v-for="investment of row.investments" :key="investment.name">
-                <td>{{ investment.value }}</td>
-                <td>{{ investment.purchaseFee }}</td>
-                <td>{{ investment.purchasePrice }}</td>
-                <td>
-                  {{ investment.monthlyMaintenanceCost }}
-                </td>
-                <td>
-                  {{ investment.maintenanceCashSpent }}
-                </td>
-                <td>{{ investment.cashOutFee }}</td>
-                <td>{{ investment.cashOutValue }}</td>
-              </template>
+              <td v-if="cols.propertyValue">{{ row.propertyValue }}</td>
+              <td v-if="cols.propertyPurchaseFee">{{ row.propertyPurchaseFee }}</td>
+              <td v-if="cols.propertyPurchasePrice">{{ row.propertyPurchasePrice }}</td>
+              <td v-if="cols.propertyMonthlyMaintenaceCost">
+                {{ row.propertyMonthlyMaintenaceCost }}
+              </td>
+              <td v-if="cols.propertyMaintenanceCashSpent">
+                {{ row.propertyMaintenanceCashSpent }}
+              </td>
+              <td v-if="cols.propertyClosingFees">{{ row.propertyClosingFees }}</td>
+              <td v-if="cols.propertyCashOutValue">{{ row.propertyCashOutValue }}</td>
               <td v-if="cols.mortgageDebt">{{ row.mortgageDebt }}</td>
               <td v-if="cols.mortgagePaid">{{ row.mortgagePaid }}</td>
               <td v-if="cols.cashAvailable">{{ row.cashAvailable }}</td>
