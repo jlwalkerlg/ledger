@@ -231,7 +231,7 @@ const rows = computed(() => {
 <template>
   <AppLayout>
     <main class="section space-y-4">
-      <AppPanel heading="Settings" expandable expanded>
+      <AppPanel heading="Settings">
         <div class="space-y-4">
           <div class="space-y-2">
             <label for="years">Period</label>
@@ -250,7 +250,7 @@ const rows = computed(() => {
 
       <LoansTable v-model="loans" />
 
-      <AppPanel heading="Initial Values" expandable expanded>
+      <AppPanel heading="Initial Values">
         <div class="space-y-4">
           <div class="space-y-2">
             <label for="initial_cash_balance">Cash Balance</label>
@@ -275,7 +275,7 @@ const rows = computed(() => {
         </div>
       </AppPanel>
 
-      <AppPanel heading="Results" expandable expanded>
+      <AppPanel heading="Results">
         <div class="space-y-4">
           <div class="flex items-top gap-4">
             <div class="font-medium">Columns:</div>
