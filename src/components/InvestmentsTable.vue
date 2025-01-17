@@ -3,6 +3,7 @@ import { Column, DataTable } from 'primevue'
 import CurrencyText from './CurrencyText.vue'
 import { ref } from 'vue'
 import InvestmentModal, { type Investment } from './InvestmentModal.vue'
+import PercentageText from './PercentageText.vue'
 
 const investments = defineModel<Investment[]>({
   required: true,
@@ -12,6 +13,7 @@ const editInvestment = ref<Investment>()
 const showInvestmentModal = ref(false)
 
 const onAddInvestment = () => {
+  editInvestment.value = undefined
   showInvestmentModal.value = true
 }
 
@@ -22,6 +24,7 @@ const onEditInvestment = (investment: Investment) => {
 
 const onRemoveInvestment = (index: number) => {
   investments.value = investments.value.filter((_, i) => i !== index)
+  editInvestment.value = undefined
 }
 
 const onSaveInvestment = (investment: Investment) => {
@@ -39,9 +42,7 @@ const onSaveInvestment = (investment: Investment) => {
     <template #header>
       <div class="flex items-center justify-between">
         <div class="heading">Investments</div>
-        <button type="button" label="Add Investment" @click="onAddInvestment" class="primary-link">
-          Add
-        </button>
+        <button type="button" @click="onAddInvestment" class="primary-link">Add</button>
       </div>
     </template>
 
@@ -61,37 +62,37 @@ const onSaveInvestment = (investment: Investment) => {
 
     <Column header="Purchase Fee">
       <template #body="{ data: investment }: { data: Investment }">
-        {{ investment.purchaseFeePercentage }}%
+        <PercentageText :value="investment.purchaseFeePercentage" />
       </template>
     </Column>
 
     <Column header="Annual Growth Rate">
       <template #body="{ data: investment }: { data: Investment }">
-        {{ investment.annualGrowthRatePercentage }}%
+        <PercentageText :value="investment.annualGrowthRatePercentage" />
       </template>
     </Column>
 
     <Column header="Monthly Growth Rate">
       <template #body="{ data: investment }: { data: Investment }">
-        {{ investment.monthlyGrowthRatePercentage.toFixed(2) }}%
+        <PercentageText :value="investment.monthlyGrowthRatePercentage" />
       </template>
     </Column>
 
     <Column header="Annual Maintenance Cost">
       <template #body="{ data: investment }: { data: Investment }">
-        {{ investment.annualMaintenanceCostPercentage }}%
+        <CurrencyText :value="investment.annualMaintenanceCostPercentage" />
       </template>
     </Column>
 
     <Column header="Monthly Maintenance Cost">
       <template #body="{ data: investment }: { data: Investment }">
-        {{ investment.monthlyMaintenanceCostPercentage.toFixed(2) }}%
+        <CurrencyText :value="investment.monthlyMaintenanceCostPercentage" />
       </template>
     </Column>
 
     <Column header="Cash Out Fee">
       <template #body="{ data: investment }: { data: Investment }">
-        {{ investment.cashOutFeePercentage }}%
+        <PercentageText :value="investment.cashOutFeePercentage" />
       </template>
     </Column>
 

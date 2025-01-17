@@ -31,8 +31,8 @@ type Values = {
   cashOutFeePercentage: number
 }
 
-const {
-  investment = {
+const defaults = {
+  investment: {
     name: 'House',
     initialValue: 144444,
     purchaseFeePercentage: 5,
@@ -40,7 +40,9 @@ const {
     annualMaintenanceCostPercentage: 1,
     cashOutFeePercentage: 5,
   },
-} = defineProps<{
+}
+
+const { investment } = defineProps<{
   investment?: Values
 }>()
 
@@ -50,12 +52,21 @@ const emit = defineEmits<{
 
 const visible = defineModel<boolean>('visible')
 
-const name = ref(investment.name)
-const initialValue = ref(investment.initialValue)
-const purchaseFeePercentage = ref(investment.purchaseFeePercentage)
-const annualGrowthRatePercentage = ref(investment.annualGrowthRatePercentage)
-const annualMaintenanceCostPercentage = ref(investment.annualMaintenanceCostPercentage)
-const cashOutFeePercentage = ref(investment.cashOutFeePercentage)
+const name = ref(investment?.name ?? defaults.investment.name)
+const initialValue = ref(investment?.initialValue ?? defaults.investment.initialValue)
+const purchaseFeePercentage = ref(
+  investment?.purchaseFeePercentage ?? defaults.investment.purchaseFeePercentage,
+)
+const annualGrowthRatePercentage = ref(
+  investment?.annualGrowthRatePercentage ?? defaults.investment.annualGrowthRatePercentage,
+)
+const annualMaintenanceCostPercentage = ref(
+  investment?.annualMaintenanceCostPercentage ??
+    defaults.investment.annualMaintenanceCostPercentage,
+)
+const cashOutFeePercentage = ref(
+  investment?.cashOutFeePercentage ?? defaults.investment.cashOutFeePercentage,
+)
 
 const initialPurchasePrice = computed(
   () => initialValue.value * (1 + purchaseFeePercentage.value / 100),
@@ -87,12 +98,17 @@ const onSave = () => {
 
 watch(visible, (visible) => {
   if (visible) {
-    name.value = investment.name
-    initialValue.value = investment.initialValue
-    purchaseFeePercentage.value = investment.purchaseFeePercentage
-    annualGrowthRatePercentage.value = investment.annualGrowthRatePercentage
-    annualMaintenanceCostPercentage.value = investment.annualMaintenanceCostPercentage
-    cashOutFeePercentage.value = investment.cashOutFeePercentage
+    name.value = investment?.name ?? defaults.investment.name
+    initialValue.value = investment?.initialValue ?? defaults.investment.initialValue
+    purchaseFeePercentage.value =
+      investment?.purchaseFeePercentage ?? defaults.investment.purchaseFeePercentage
+    annualGrowthRatePercentage.value =
+      investment?.annualGrowthRatePercentage ?? defaults.investment.annualGrowthRatePercentage
+    annualMaintenanceCostPercentage.value =
+      investment?.annualMaintenanceCostPercentage ??
+      defaults.investment.annualMaintenanceCostPercentage
+    cashOutFeePercentage.value =
+      investment?.cashOutFeePercentage ?? defaults.investment.cashOutFeePercentage
   }
 })
 </script>
@@ -101,7 +117,7 @@ watch(visible, (visible) => {
   <Dialog
     v-model:visible="visible"
     modal
-    header="Add Investment"
+    :header="investment ? 'Edit Investment' : 'Add Investment'"
     :draggable="false"
     dismissableMask
   >
@@ -254,7 +270,10 @@ watch(visible, (visible) => {
 
       <div class="flex items-center justify-end gap-4">
         <Button type="button" variant="outlined" @click="onCancel">Cancel</Button>
-        <Button type="submit">Add</Button>
+        <Button type="submit">
+          <template v-if="investment">Edit</template>
+          <template v-else>Add</template>
+        </Button>
       </div>
     </form>
   </Dialog>
