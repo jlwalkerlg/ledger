@@ -8,8 +8,8 @@ import type { Loan } from '@/models/loans'
 import { toGbp } from '@/utils/formatters'
 import {
   addPercentage,
-  annualToMonthlyInterestRatePercentage,
-  calculateMonthlyLoanPayment,
+  getMonthlyInterestRatePercentage,
+  getMonthlyLoanPayment,
   percentageOf,
 } from '@/utils/maths'
 import {
@@ -23,19 +23,20 @@ import {
 } from 'primevue'
 import { computed, ref } from 'vue'
 
-const years = ref(10)
+const years = ref(5)
 
 const investments = ref<Investment[]>([
-  // {
-  //   name: 'House',
-  //   initialValue: 144444,
-  //   purchaseFeePercentage: 5,
-  //   annualGrowthRatePercentage: 3,
-  //   monthlyGrowthRatePercentage: annualToMonthlyInterestRatePercentage(3, 'effective'),
-  //   annualMaintenanceCostPercentage: 1,
-  //   monthlyMaintenanceCostPercentage: annualToMonthlyInterestRatePercentage(1, 'effective'),
-  //   cashOutFeePercentage: 5,
-  // },
+  {
+    name: 'House',
+    initialValue: 325000,
+    purchaseFeePercentage: 5,
+    annualGrowthRatePercentage: 5,
+    monthlyGrowthRatePercentage: getMonthlyInterestRatePercentage(5, 'effective'),
+    growthRateType: 'effective',
+    annualMaintenanceCostPercentage: 1,
+    monthlyMaintenanceCostPercentage: getMonthlyInterestRatePercentage(1, 'effective'),
+    cashOutFeePercentage: 5,
+  },
 ])
 
 const loans = ref<Loan[]>([
@@ -43,29 +44,29 @@ const loans = ref<Loan[]>([
   //   name: 'Mortgage',
   //   amount: 130000,
   //   annualInterestRatePercentage: 4.5,
-  //   monthlyInterestRatePercentage: annualToMonthlyInterestRatePercentage(4.5, 'nominal'),
+  //   monthlyInterestRatePercentage: getMonthlyInterestRatePercentage(4.5, 'nominal'),
   //   interestRateType: 'nominal',
   //   term: 10,
-  //   monthlyPayment: calculateMonthlyLoanPayment(130000, 4.5, 'nominal', 10),
+  //   monthlyPayment: getMonthlyLoanPayment(130000, 4.5, 'nominal', 10),
   // },
-  {
-    name: 'Loan (effective)',
-    amount: 2000,
-    annualInterestRatePercentage: 10,
-    monthlyInterestRatePercentage: annualToMonthlyInterestRatePercentage(10, 'effective'),
-    interestRateType: 'effective',
-    term: 3,
-    monthlyPayment: calculateMonthlyLoanPayment(2000, 10, 'effective', 3),
-  },
-  {
-    name: 'Loan (nominal)',
-    amount: 2000,
-    annualInterestRatePercentage: 9.57,
-    monthlyInterestRatePercentage: annualToMonthlyInterestRatePercentage(9.57, 'nominal'),
-    interestRateType: 'nominal',
-    term: 3,
-    monthlyPayment: calculateMonthlyLoanPayment(2000, 9.57, 'nominal', 3),
-  },
+  // {
+  //   name: 'Loan (effective)',
+  //   amount: 2000,
+  //   annualInterestRatePercentage: 10,
+  //   monthlyInterestRatePercentage: getMonthlyInterestRatePercentage(10, 'effective'),
+  //   interestRateType: 'effective',
+  //   term: 3,
+  //   monthlyPayment: getMonthlyLoanPayment(2000, 10, 'effective', 3),
+  // },
+  // {
+  //   name: 'Loan (nominal)',
+  //   amount: 2000,
+  //   annualInterestRatePercentage: 9.57,
+  //   monthlyInterestRatePercentage: getMonthlyInterestRatePercentage(9.57, 'nominal'),
+  //   interestRateType: 'nominal',
+  //   term: 3,
+  //   monthlyPayment: getMonthlyLoanPayment(2000, 9.57, 'nominal', 3),
+  // },
 ])
 
 const totalInvestmentsInitialPurchasePrice = computed(() =>

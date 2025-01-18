@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import { NAMED_INTEREST_RATE_TYPES, type InterestRateType } from '@/models/interest-rates'
 import type { Investment } from '@/models/investments'
-import { aerToMonthly } from '@/utils/maths'
+import { getMonthlyInterestRatePercentage } from '@/utils/maths'
 import {
   Button,
   Dialog,
@@ -9,6 +10,7 @@ import {
   InputNumber,
   InputText,
   Message,
+  Select,
 } from 'primevue'
 import { computed, ref, watch } from 'vue'
 
@@ -17,6 +19,7 @@ const defaults = {
   initialValue: 144444,
   purchaseFeePercentage: 5,
   annualGrowthRatePercentage: 3,
+  growthRateType: 'effective' as InterestRateType,
   annualMaintenanceCostPercentage: 1,
   cashOutFeePercentage: 5,
 }
@@ -39,6 +42,7 @@ const purchaseFeePercentage = ref(
 const annualGrowthRatePercentage = ref(
   investment?.annualGrowthRatePercentage ?? defaults.annualGrowthRatePercentage,
 )
+const growthRateType = ref(investment?.growthRateType ?? defaults.growthRateType)
 const annualMaintenanceCostPercentage = ref(
   investment?.annualMaintenanceCostPercentage ?? defaults.annualMaintenanceCostPercentage,
 )
@@ -48,10 +52,12 @@ const initialPurchasePrice = computed(
   () => initialValue.value * (1 + purchaseFeePercentage.value / 100),
 )
 
-const monthlyGrowthRatePercentage = computed(() => aerToMonthly(annualGrowthRatePercentage.value))
+const monthlyGrowthRatePercentage = computed(() =>
+  getMonthlyInterestRatePercentage(annualGrowthRatePercentage.value, growthRateType.value),
+)
 
 const monthlyMaintenanceCostPercentage = computed(() =>
-  aerToMonthly(annualMaintenanceCostPercentage.value),
+  getMonthlyInterestRatePercentage(annualMaintenanceCostPercentage.value, 'effective'),
 )
 
 const onCancel = () => {
@@ -65,6 +71,7 @@ const onSave = () => {
     purchaseFeePercentage: purchaseFeePercentage.value,
     annualGrowthRatePercentage: annualGrowthRatePercentage.value,
     monthlyGrowthRatePercentage: monthlyGrowthRatePercentage.value,
+    growthRateType: growthRateType.value,
     annualMaintenanceCostPercentage: annualMaintenanceCostPercentage.value,
     monthlyMaintenanceCostPercentage: monthlyMaintenanceCostPercentage.value,
     cashOutFeePercentage: cashOutFeePercentage.value,
@@ -80,6 +87,7 @@ watch(visible, (visible) => {
       investment?.purchaseFeePercentage ?? defaults.purchaseFeePercentage
     annualGrowthRatePercentage.value =
       investment?.annualGrowthRatePercentage ?? defaults.annualGrowthRatePercentage
+    growthRateType.value = investment?.growthRateType ?? defaults.growthRateType
     annualMaintenanceCostPercentage.value =
       investment?.annualMaintenanceCostPercentage ?? defaults.annualMaintenanceCostPercentage
     cashOutFeePercentage.value = investment?.cashOutFeePercentage ?? defaults.cashOutFeePercentage
@@ -157,7 +165,55 @@ watch(visible, (visible) => {
       </div>
 
       <div class="space-y-2">
-        <label for="annual_maintenance_cost_percentage"> Annual Maintenance Cost </label>
+        <label for="annual_growth_rate_percentage">Annual Growth Rate</label>
+        <InputGroup>
+          <InputNumber
+            input-id="annual_growth_rate_percentage"
+            v-model="annualGrowthRatePercentage"
+            :max="100"
+            :max-fraction-digits="2"
+          />
+          <InputGroupAddon>%</InputGroupAddon>
+        </InputGroup>
+        <Message size="small" severity="secondary" variant="simple">
+          Enter the expected annual growth rate of your investment.
+        </Message>
+      </div>
+
+      <div class="space-y-2">
+        <label for="growth_rate_type">Growth Rate Type</label>
+        <InputGroup>
+          <Select
+            label-id="growth_rate_type"
+            v-model="growthRateType"
+            :options="NAMED_INTEREST_RATE_TYPES"
+            :option-label="(option) => option.name"
+            :option-value="(option) => option.value"
+          />
+        </InputGroup>
+        <Message size="small" severity="secondary" variant="simple">
+          Select the type of growth rate.
+        </Message>
+      </div>
+
+      <div class="space-y-2">
+        <label for="monthly_growth_rate_percentage">Monthly Growth Rate</label>
+        <InputGroup>
+          <InputNumber
+            input-id="monthly_growth_rate_percentage"
+            :model-value="monthlyGrowthRatePercentage"
+            disabled
+            :max-fraction-digits="2"
+          />
+          <InputGroupAddon>%</InputGroupAddon>
+        </InputGroup>
+        <Message size="small" severity="secondary" variant="simple">
+          This is the expected monthly growth rate of your investment.
+        </Message>
+      </div>
+
+      <div class="space-y-2">
+        <label for="annual_maintenance_cost_percentage">Annual Maintenance Cost</label>
         <InputGroup>
           <InputNumber
             input-id="annual_maintenance_cost_percentage"
@@ -171,7 +227,7 @@ watch(visible, (visible) => {
         <Message size="small" severity="secondary" variant="simple">
           Enter any annual maintenance cost associated with holding the investment as a percentage
           of the investment. For example, for a property, this could be how much you expect to spend
-          on repairs each year.
+          on repairs each year. This is expected to be an effective rate compounded monthly.
         </Message>
       </div>
 
@@ -189,38 +245,6 @@ watch(visible, (visible) => {
         <Message size="small" severity="secondary" variant="simple">
           This is the cost of maintaining the investment each month as a percentage of the
           investment.
-        </Message>
-      </div>
-
-      <div class="space-y-2">
-        <label for="annual_growth_rate_percentage">Annual Growth Rate</label>
-        <InputGroup>
-          <InputNumber
-            input-id="annual_growth_rate_percentage"
-            v-model="annualGrowthRatePercentage"
-            :max="100"
-            :max-fraction-digits="2"
-          />
-          <InputGroupAddon>%</InputGroupAddon>
-        </InputGroup>
-        <Message size="small" severity="secondary" variant="simple">
-          Enter the expected annual growth rate of your investment.
-        </Message>
-      </div>
-
-      <div class="space-y-2">
-        <label for="monthly_growth_rate_percentage">Monthly Growth Rate</label>
-        <InputGroup>
-          <InputNumber
-            input-id="monthly_growth_rate_percentage"
-            :model-value="monthlyGrowthRatePercentage"
-            disabled
-            :max-fraction-digits="2"
-          />
-          <InputGroupAddon>%</InputGroupAddon>
-        </InputGroup>
-        <Message size="small" severity="secondary" variant="simple">
-          This is the expected monthly growth rate of your investment.
         </Message>
       </div>
 

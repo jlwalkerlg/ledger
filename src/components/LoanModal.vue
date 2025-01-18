@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { NAMED_INTEREST_RATE_TYPES, type InterestRateType } from '@/models/interest-rates'
 import type { Loan } from '@/models/loans'
-import { annualToMonthlyInterestRatePercentage, calculateMonthlyLoanPayment } from '@/utils/maths'
+import { getMonthlyInterestRatePercentage, getMonthlyLoanPayment } from '@/utils/maths'
 import {
   Button,
   Dialog,
@@ -41,11 +41,11 @@ const interestRateType = ref(loan?.interestRateType ?? defaults.interestRateType
 const term = ref(loan?.term ?? defaults.term)
 
 const monthlyInterestRatePercentage = computed(() =>
-  annualToMonthlyInterestRatePercentage(annualInterestRatePercentage.value, interestRateType.value),
+  getMonthlyInterestRatePercentage(annualInterestRatePercentage.value, interestRateType.value),
 )
 
 const monthlyPayment = computed(() =>
-  calculateMonthlyLoanPayment(
+  getMonthlyLoanPayment(
     amount.value,
     annualInterestRatePercentage.value,
     interestRateType.value,

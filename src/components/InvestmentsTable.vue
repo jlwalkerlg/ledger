@@ -2,8 +2,10 @@
 import { Column, DataTable } from 'primevue'
 import CurrencyText from './CurrencyText.vue'
 import { ref } from 'vue'
-import InvestmentModal, { type Investment } from './InvestmentModal.vue'
+import InvestmentModal from './InvestmentModal.vue'
 import PercentageText from './PercentageText.vue'
+import type { Investment } from '@/models/investments'
+import InterestRateText from './InterestRateText.vue'
 
 const investments = defineModel<Investment[]>({
   required: true,
@@ -66,9 +68,19 @@ const onSaveInvestment = (investment: Investment) => {
       </template>
     </Column>
 
+    <Column header="Growth Rate">
+      <template #body="{ data: investment }: { data: Investment }">
+        <InterestRateText
+          :annual-rate-percentage="investment.annualGrowthRatePercentage"
+          :type="investment.growthRateType"
+        />
+      </template>
+    </Column>
+
     <Column header="Annual Growth Rate">
       <template #body="{ data: investment }: { data: Investment }">
         <PercentageText :value="investment.annualGrowthRatePercentage" />
+        ({{ investment.growthRateType }})
       </template>
     </Column>
 
@@ -80,13 +92,14 @@ const onSaveInvestment = (investment: Investment) => {
 
     <Column header="Annual Maintenance Cost">
       <template #body="{ data: investment }: { data: Investment }">
-        <CurrencyText :value="investment.annualMaintenanceCostPercentage" />
+        <PercentageText :value="investment.annualMaintenanceCostPercentage" />
+        (effective)
       </template>
     </Column>
 
     <Column header="Monthly Maintenance Cost">
       <template #body="{ data: investment }: { data: Investment }">
-        <CurrencyText :value="investment.monthlyMaintenanceCostPercentage" />
+        <PercentageText :value="investment.monthlyMaintenanceCostPercentage" />
       </template>
     </Column>
 
