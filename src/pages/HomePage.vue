@@ -13,6 +13,7 @@ import {
   percentageOf,
 } from '@/utils/maths'
 import flatten from 'lodash-es/flatten'
+import uniqueId from 'lodash-es/uniqueId'
 import {
   Column,
   ColumnGroup,
@@ -32,6 +33,7 @@ const years = ref(5)
 
 const investments = ref<Investment[]>([
   {
+    id: uniqueId(),
     name: 'House',
     initialValue: 325000,
     purchaseFeePercentage: 5,
@@ -46,6 +48,7 @@ const investments = ref<Investment[]>([
 
 const loans = ref<Loan[]>([
   {
+    id: uniqueId(),
     name: 'Mortgage',
     amount: 130000,
     annualInterestRatePercentage: 4.5,
@@ -84,7 +87,7 @@ const cols = ref([
   'time.years',
   ...flatten(
     investments.value.map((investment) => {
-      const group = `investment.${investment.name}`
+      const group = `investment.${investment.id}`
 
       return [
         `${group}.value`,
@@ -98,7 +101,7 @@ const cols = ref([
   ),
   ...flatten(
     loans.value.map((loan) => {
-      const group = `loan.${loan.name}`
+      const group = `loan.${loan.id}`
 
       return [`${group}.debt`, `${group}.paid`]
     }),
@@ -150,7 +153,7 @@ const COL_OPTIONS = computed<ColGroup[]>(() => [
     ],
   },
   ...investments.value.map((investment) => {
-    const group = `investment.${investment.name}`
+    const group = `investment.${investment.id}`
 
     return {
       label: investment.name,
@@ -185,7 +188,7 @@ const COL_OPTIONS = computed<ColGroup[]>(() => [
     }
   }),
   ...loans.value.map((loan) => {
-    const group = `loan.${loan.name}`
+    const group = `loan.${loan.id}`
 
     return {
       label: loan.name,
@@ -219,6 +222,7 @@ const GROUP_BY_OPTIONS = [
 
 const breakdown = computed(() => {
   const investmentsBreakdown = investments.value.map((investment) => {
+    const id = investment.id
     const name = investment.name
     const value = investment.initialValue
     const purchaseFeePercentage = investment.purchaseFeePercentage
@@ -236,6 +240,7 @@ const breakdown = computed(() => {
     const cashOutValue = value - cashOutFee
 
     return {
+      id,
       name,
       value,
       purchaseFeePercentage,
@@ -252,6 +257,7 @@ const breakdown = computed(() => {
   })
 
   const loansBreakdown = loans.value.map((loan) => {
+    const id = loan.id
     const name = loan.name
     const debt = loan.amount
     const paid = 0
@@ -261,6 +267,7 @@ const breakdown = computed(() => {
     const monthlyPayment = loan.monthlyPayment
 
     return {
+      id,
       name,
       debt,
       paid,
@@ -336,6 +343,7 @@ const breakdown = computed(() => {
       month,
       year,
       investments: investmentsBreakdown.map((investment) => ({
+        id: investment.id,
         name: investment.name,
         value: toGbp(investment.value),
         purchaseFee: toGbp(investment.purchaseFee),
@@ -346,6 +354,7 @@ const breakdown = computed(() => {
         cashOutValue: toGbp(investment.cashOutValue),
       })),
       loans: loansBreakdown.map((loan) => ({
+        id: loan,
         name: loan.name,
         debt: toGbp(loan.debt),
         paid: toGbp(loan.paid),
@@ -464,18 +473,18 @@ const rows = computed(() => {
                 <Column v-if="colspans['time.month']" header="Month" :rowspan="2" />
                 <Column v-if="colspans['time.year']" header="Year" :rowspan="2" />
               </template>
-              <template v-for="investment of investments" :key="investment.name">
+              <template v-for="investment of investments" :key="investment.id">
                 <Column
-                  v-if="colspans[`investment.${investment.name}`]"
+                  v-if="colspans[`investment.${investment.id}`]"
                   :header="investment.name"
-                  :colspan="colspans[`investment.${investment.name}`]"
+                  :colspan="colspans[`investment.${investment.id}`]"
                 />
               </template>
-              <template v-for="loan of loans" :key="loan.name">
+              <template v-for="loan of loans" :key="loan.id">
                 <Column
-                  v-if="colspans[`loan.${loan.name}`]"
+                  v-if="colspans[`loan.${loan.id}`]"
                   :header="loan.name"
-                  :colspan="colspans[`loan.${loan.name}`]"
+                  :colspan="colspans[`loan.${loan.id}`]"
                 />
               </template>
               <template v-if="colspans['cash']">
@@ -521,35 +530,35 @@ const rows = computed(() => {
               </template>
             </Row>
             <Row>
-              <template v-for="investment of investments" :key="investment.name">
-                <template v-if="colspans[`investment.${investment.name}`]">
-                  <Column v-if="colspans[`investment.${investment.name}.value`]" header="Value" />
+              <template v-for="investment of investments" :key="investment.id">
+                <template v-if="colspans[`investment.${investment.id}`]">
+                  <Column v-if="colspans[`investment.${investment.id}.value`]" header="Value" />
                   <Column
-                    v-if="colspans[`investment.${investment.name}.purchase_fee`]"
+                    v-if="colspans[`investment.${investment.id}.purchase_fee`]"
                     header="Purchase Fee"
                   />
                   <Column
-                    v-if="colspans[`investment.${investment.name}.maintenance_cost`]"
+                    v-if="colspans[`investment.${investment.id}.maintenance_cost`]"
                     header="Maintenance Cost"
                   />
                   <Column
-                    v-if="colspans[`investment.${investment.name}.maintenance_cash_spent`]"
+                    v-if="colspans[`investment.${investment.id}.maintenance_cash_spent`]"
                     header="Maintenance Cash Spent"
                   />
                   <Column
-                    v-if="colspans[`investment.${investment.name}.cash_out_fee`]"
+                    v-if="colspans[`investment.${investment.id}.cash_out_fee`]"
                     header="Cash Out Fee"
                   />
                   <Column
-                    v-if="colspans[`investment.${investment.name}.cash_out_value`]"
+                    v-if="colspans[`investment.${investment.id}.cash_out_value`]"
                     header="Cash Out Value"
                   />
                 </template>
               </template>
-              <template v-for="loan of loans" :key="loan.name">
-                <template v-if="colspans[`loan.${loan.name}`]">
-                  <Column v-if="colspans[`loan.${loan.name}.debt`]" header="Debt" />
-                  <Column v-if="colspans[`loan.${loan.name}.paid`]" header="Paid" />
+              <template v-for="loan of loans" :key="loan.id">
+                <template v-if="colspans[`loan.${loan.id}`]">
+                  <Column v-if="colspans[`loan.${loan.id}.debt`]" header="Debt" />
+                  <Column v-if="colspans[`loan.${loan.id}.paid`]" header="Paid" />
                 </template>
               </template>
             </Row>
@@ -564,43 +573,43 @@ const rows = computed(() => {
             <Column v-if="colspans['time.year']" :field="(row) => row.year" />
           </template>
 
-          <template v-for="(investment, index) of investments" :key="investment.name">
-            <template v-if="colspans[`investment.${investment.name}`]">
+          <template v-for="(investment, index) of investments" :key="investment.id">
+            <template v-if="colspans[`investment.${investment.id}`]">
               <Column
-                v-if="colspans[`investment.${investment.name}.value`]"
+                v-if="colspans[`investment.${investment.id}.value`]"
                 :field="(row) => row.investments[index].value"
               />
               <Column
-                v-if="colspans[`investment.${investment.name}.purchase_fee`]"
+                v-if="colspans[`investment.${investment.id}.purchase_fee`]"
                 :field="(row) => row.investments[index].purchaseFee"
               />
               <Column
-                v-if="colspans[`investment.${investment.name}.maintenance_cost`]"
+                v-if="colspans[`investment.${investment.id}.maintenance_cost`]"
                 :field="(row) => row.investments[index].monthlyMaintenanceCost"
               />
               <Column
-                v-if="colspans[`investment.${investment.name}.maintenance_cash_spent`]"
+                v-if="colspans[`investment.${investment.id}.maintenance_cash_spent`]"
                 :field="(row) => row.investments[index].maintenanceCashSpent"
               />
               <Column
-                v-if="colspans[`investment.${investment.name}.cash_out_fee`]"
+                v-if="colspans[`investment.${investment.id}.cash_out_fee`]"
                 :field="(row) => row.investments[index].cashOutFee"
               />
               <Column
-                v-if="colspans[`investment.${investment.name}.cash_out_value`]"
+                v-if="colspans[`investment.${investment.id}.cash_out_value`]"
                 :field="(row) => row.investments[index].cashOutValue"
               />
             </template>
           </template>
 
-          <template v-for="(loan, index) of loans" :key="loan.name">
-            <template v-if="colspans[`loan.${loan.name}`]">
+          <template v-for="(loan, index) of loans" :key="loan.id">
+            <template v-if="colspans[`loan.${loan.id}`]">
               <Column
-                v-if="colspans[`loan.${loan.name}.debt`]"
+                v-if="colspans[`loan.${loan.id}.debt`]"
                 :field="(row) => row.loans[index].debt"
               />
               <Column
-                v-if="colspans[`loan.${loan.name}.paid`]"
+                v-if="colspans[`loan.${loan.id}.paid`]"
                 :field="(row) => row.loans[index].paid"
               />
             </template>

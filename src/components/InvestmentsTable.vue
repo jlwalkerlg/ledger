@@ -24,14 +24,16 @@ const onEditInvestment = (investment: Investment) => {
   showInvestmentModal.value = true
 }
 
-const onRemoveInvestment = (index: number) => {
-  investments.value = investments.value.filter((_, i) => i !== index)
+const onRemoveInvestment = (investment: Investment) => {
+  investments.value = investments.value.filter((i) => i.id !== investment.id)
   editInvestment.value = undefined
 }
 
 const onSaveInvestment = (investment: Investment) => {
   if (editInvestment.value) {
-    investments.value = investments.value.map((i) => (i === editInvestment.value ? investment : i))
+    investments.value = investments.value.map((i) =>
+      i.id === editInvestment.value?.id ? investment : i,
+    )
   } else {
     investments.value = [...investments.value, investment]
   }
@@ -110,13 +112,13 @@ const onSaveInvestment = (investment: Investment) => {
     </Column>
 
     <Column body-class="text-right">
-      <template #body="{ data: investment, index }: { data: Investment; index: number }">
+      <template #body="{ data: investment }: { data: Investment }">
         <div class="space-x-4">
           <button role="button" class="primary-link" @click="onEditInvestment(investment)">
             Edit
           </button>
 
-          <button role="button" class="primary-link" @click="onRemoveInvestment(index)">
+          <button role="button" class="primary-link" @click="onRemoveInvestment(investment)">
             Remove
           </button>
         </div>

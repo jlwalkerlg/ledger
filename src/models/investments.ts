@@ -1,6 +1,7 @@
 import type { InterestRateType } from './interest-rates'
 
 export type Investment = {
+  id: string
   name: string
   initialValue: number
   purchaseFeePercentage: number

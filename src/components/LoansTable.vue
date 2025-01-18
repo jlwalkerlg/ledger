@@ -24,14 +24,14 @@ const onEditLoan = (loan: Loan) => {
   showLoanModal.value = true
 }
 
-const onRemoveLoan = (index: number) => {
-  loans.value = loans.value.filter((_, l) => l !== index)
+const onRemoveLoan = (loan: Loan) => {
+  loans.value = loans.value.filter((l) => l.id !== loan.id)
   editLoan.value = undefined
 }
 
 const onSaveLoan = (loan: Loan) => {
   if (editLoan.value) {
-    loans.value = loans.value.map((l) => (l === editLoan.value ? loan : l))
+    loans.value = loans.value.map((l) => (l.id === editLoan.value?.id ? loan : l))
   } else {
     loans.value = [...loans.value, loan]
   }
@@ -93,11 +93,11 @@ const onSaveLoan = (loan: Loan) => {
     </Column>
 
     <Column body-class="text-right">
-      <template #body="{ data: loan, index }: { data: Loan; index: number }">
+      <template #body="{ data: loan }: { data: Loan }">
         <div class="space-x-4">
           <button role="button" class="primary-link" @click="onEditLoan(loan)">Edit</button>
 
-          <button role="button" class="primary-link" @click="onRemoveLoan(index)">Remove</button>
+          <button role="button" class="primary-link" @click="onRemoveLoan(loan)">Remove</button>
         </div>
       </template>
     </Column>

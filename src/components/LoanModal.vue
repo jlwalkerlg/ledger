@@ -2,6 +2,7 @@
 import { NAMED_INTEREST_RATE_TYPES, type InterestRateType } from '@/models/interest-rates'
 import type { Loan } from '@/models/loans'
 import { getMonthlyInterestRatePercentage, getMonthlyLoanPayment } from '@/utils/maths'
+import uniqueId from 'lodash-es/uniqueId'
 import {
   Button,
   Dialog,
@@ -59,6 +60,7 @@ const onCancel = () => {
 
 const onSave = () => {
   emit('update:loan', {
+    id: loan?.id ?? uniqueId(),
     name: name.value,
     amount: amount.value,
     annualInterestRatePercentage: annualInterestRatePercentage.value,
