@@ -12,8 +12,8 @@ import {
   getMonthlyLoanPayment,
   percentageOf,
 } from '@/utils/maths'
+import flatten from 'lodash-es/flatten'
 import {
-  Checkbox,
   Column,
   ColumnGroup,
   DataTable,
@@ -21,9 +21,10 @@ import {
   InputGroupAddon,
   InputNumber,
   Message,
-  RadioButton,
+  MultiSelect,
   Row,
   ScrollTop,
+  Select,
 } from 'primevue'
 import { computed, ref } from 'vue'
 
@@ -79,19 +80,142 @@ const intitialCashBalance = computed(
   () => totalInvestmentsInitialPurchasePrice.value - totalInitialLoanAmount.value,
 )
 
-const cols = ref({
-  days: false,
-  months: false,
-  years: true,
-  day: false,
-  month: false,
-  year: false,
-  cashAvailable: false,
-  cashSpent: false,
-  cashProfit: false,
+const cols = ref([
+  'time.years',
+  ...flatten(
+    investments.value.map((investment) => {
+      const group = `investment.${investment.name}`
+
+      return [
+        `${group}.value`,
+        `${group}.purchase_fee`,
+        `${group}.maintenance_cost`,
+        `${group}.maintenance_cash_spent`,
+        `${group}.cash_out_fee`,
+        `${group}.cash_out_value`,
+      ]
+    }),
+  ),
+  ...flatten(
+    loans.value.map((loan) => {
+      const group = `loan.${loan.name}`
+
+      return [`${group}.debt`, `${group}.paid`]
+    }),
+  ),
+  'cash.available',
+  'cash.spent',
+  'cash.profit',
+])
+
+const colspans = computed(() => {
+  const result: Record<string, number> = {}
+
+  for (const col of cols.value) {
+    const group = col.slice(0, col.lastIndexOf('.'))
+
+    if (!result[group]) {
+      result[group] = 1
+    } else {
+      result[group]++
+    }
+
+    result[col] = 1
+  }
+
+  return result
 })
 
+type ColGroup = {
+  label: string
+  items: ColOption[]
+}
+
+type ColOption = {
+  label: string
+  value: string
+  group: string
+}
+
+const COL_OPTIONS = computed<ColGroup[]>(() => [
+  {
+    label: 'Time',
+    items: [
+      { label: 'Days', value: 'time.days', group: 'time' },
+      { label: 'Months', value: 'time.months', group: 'time' },
+      { label: 'Years', value: 'time.years', group: 'time' },
+      { label: 'Day', value: 'time.day', group: 'time' },
+      { label: 'Month', value: 'time.month', group: 'time' },
+      { label: 'Year', value: 'time.year', group: 'time' },
+    ],
+  },
+  ...investments.value.map((investment) => {
+    const group = `investment.${investment.name}`
+
+    return {
+      label: investment.name,
+      items: [
+        { label: 'Value', value: `${group}.value`, group },
+        {
+          label: 'Purchase Fee',
+          value: `${group}.purchase_fee`,
+          group,
+        },
+        {
+          label: 'Maintenance Cost',
+          value: `${group}.maintenance_cost`,
+          group,
+        },
+        {
+          label: 'Maintenance Cash Spent',
+          value: `${group}.maintenance_cash_spent`,
+          group,
+        },
+        {
+          label: 'Cash Out Fee',
+          value: `${group}.cash_out_fee`,
+          group,
+        },
+        {
+          label: 'Cash Out Value',
+          value: `${group}.cash_out_value`,
+          group,
+        },
+      ],
+    }
+  }),
+  ...loans.value.map((loan) => {
+    const group = `loan.${loan.name}`
+
+    return {
+      label: loan.name,
+      items: [
+        { label: 'Debt', value: `${group}.debt`, group },
+        {
+          label: 'Paid',
+          value: `${group}.paid`,
+          group,
+        },
+      ],
+    }
+  }),
+  {
+    label: 'Cash',
+    items: [
+      { label: 'Available', value: 'cash.available', group: 'cash' },
+      { label: 'Spent', value: 'cash.spent', group: 'cash' },
+      { label: 'Profit', value: 'cash.profit', group: 'cash' },
+    ],
+  },
+])
+
 const groupBy = ref('years')
+
+const GROUP_BY_OPTIONS = [
+  { name: 'Days', value: 'days' },
+  { name: 'Months', value: 'months' },
+  { name: 'Years', value: 'years' },
+]
 
 const breakdown = computed(() => {
   const investmentsBreakdown = investments.value.map((investment) => {
@@ -294,90 +418,32 @@ const rows = computed(() => {
       </AppPanel>
 
       <AppPanel heading="Results">
-        <div class="space-y-4">
-          <div class="flex items-top gap-4">
+        <div class="flex items-center gap-6">
+          <div class="flex items-center gap-4">
             <div class="font-medium">Columns:</div>
 
-            <div class="flex items-center gap-x-2 gap-y-4 flex-wrap flex-1">
-              <div class="flex items-center gap-2">
-                <Checkbox v-model="cols.days" binary input-id="days_col" />
-                <label for="days_col">Days</label>
-              </div>
-
-              <div class="flex items-center gap-2">
-                <Checkbox v-model="cols.months" binary input-id="months_col" />
-                <label for="months_col">Months</label>
-              </div>
-
-              <div class="flex items-center gap-2">
-                <Checkbox v-model="cols.years" binary input-id="years_col" />
-                <label for="years_col">Years</label>
-              </div>
-
-              <div class="flex items-center gap-2">
-                <Checkbox v-model="cols.day" binary input-id="day_col" />
-                <label for="day_col">Day</label>
-              </div>
-
-              <div class="flex items-center gap-2">
-                <Checkbox v-model="cols.month" binary input-id="month_col" />
-                <label for="month_col">Month</label>
-              </div>
-
-              <div class="flex items-center gap-2">
-                <Checkbox v-model="cols.year" binary input-id="year_col" />
-                <label for="year_col">Year</label>
-              </div>
-
-              <div class="flex items-center gap-2">
-                <Checkbox v-model="cols.cashAvailable" binary input-id="cash_available_col" />
-                <label for="cash_available_col">Cash Available</label>
-              </div>
-
-              <div class="flex items-center gap-2">
-                <Checkbox v-model="cols.cashSpent" binary input-id="cash_spent_col" />
-                <label for="cash_spent_col">Cash Spent</label>
-              </div>
-
-              <div class="flex items-center gap-2">
-                <Checkbox v-model="cols.cashProfit" binary input-id="cash_profit_col" />
-                <label for="cash_profit_col">Cash Profit</label>
-              </div>
-            </div>
+            <MultiSelect
+              v-model="cols"
+              :options="COL_OPTIONS"
+              :option-label="(option: ColOption) => option.label"
+              :option-value="(option: ColOption) => option.value"
+              :option-group-label="(group: ColGroup) => group.label"
+              :option-group-children="(group: ColGroup) => group.items"
+              :show-toggle-all="false"
+              class="w-full md:w-80"
+            />
           </div>
 
           <div class="flex items-center gap-4">
             <div class="font-medium">Group By:</div>
 
-            <div class="flex items-center gap-2">
-              <RadioButton
-                v-model="groupBy"
-                input-id="group_by_days"
-                name="group_by"
-                value="days"
-              />
-              <label for="group_by_days">Days</label>
-            </div>
-
-            <div class="flex items-center gap-2">
-              <RadioButton
-                v-model="groupBy"
-                input-id="group_by_months"
-                name="group_by"
-                value="months"
-              />
-              <label for="group_by_months">Months</label>
-            </div>
-
-            <div class="flex items-center gap-2">
-              <RadioButton
-                v-model="groupBy"
-                input-id="group_by_years"
-                name="group_by"
-                value="years"
-              />
-              <label for="group_by_years">Years</label>
-            </div>
+            <Select
+              v-model="groupBy"
+              :options="GROUP_BY_OPTIONS"
+              option-label="name"
+              option-value="value"
+              class="w-full md:w-80"
+            />
           </div>
         </div>
 
@@ -386,102 +452,165 @@ const rows = computed(() => {
           scrollable
           scrollHeight="500px"
           :virtual-scroller-options="{ itemSize: 46 }"
+          class="mt-4"
         >
           <ColumnGroup type="header">
             <Row>
-              <Column v-if="cols.days" header="Days" :rowspan="2" />
-              <Column v-if="cols.months" header="Months" :rowspan="2" />
-              <Column v-if="cols.years" header="Years" :rowspan="2" />
-              <Column v-if="cols.day" header="Day" :rowspan="2" />
-              <Column v-if="cols.month" header="Month" :rowspan="2" />
-              <Column v-if="cols.year" header="Year" :rowspan="2" />
-              <Column
-                v-for="investment of investments"
-                :key="investment.name"
-                :header="investment.name"
-                :colspan="6"
-              />
-              <Column v-for="loan of loans" :key="loan.name" :header="loan.name" :colspan="2" />
-              <Column v-if="cols.cashAvailable" :rowspan="2">
-                <template #header>
-                  <span class="p-datatable-column-title align-middle">Cash Available </span>
-                  <i
-                    class="pi pi-info-circle align-middle ml-1"
-                    v-tooltip="{
-                      value:
-                        'This is how much cash you have available to you if you cash out on all your properties and pay off all of your debts.',
-                      autoHide: false,
-                    }"
-                  ></i>
-                </template>
-              </Column>
-              <Column v-if="cols.cashSpent" :rowspan="2">
-                <template #header>
-                  <span class="p-datatable-column-title align-middle">Cash Spent </span>
-                  <i
-                    class="pi pi-info-circle align-middle ml-1"
-                    v-tooltip="{
-                      value:
-                        'This is how much you have spent in cash so far from investment purchase fees, deposits, and maintenance costs.',
-                      autoHide: false,
-                    }"
-                  ></i>
-                </template>
-              </Column>
-              <Column v-if="cols.cashProfit" :rowspan="2">
-                <template #header>
-                  <span class="p-datatable-column-title align-middle">Cash Profit </span>
-                  <i
-                    class="pi pi-info-circle align-middle ml-1"
-                    v-tooltip="{
-                      value:
-                        'This is how much better off you\'d be if you cashed out on all your properties and paid off all of your debts versus never making any investments.',
-                      autoHide: false,
-                    }"
-                  ></i>
-                </template>
-              </Column>
+              <template v-if="colspans['time']">
+                <Column v-if="colspans['time.days']" header="Days" :rowspan="2" />
+                <Column v-if="colspans['time.months']" header="Months" :rowspan="2" />
+                <Column v-if="colspans['time.years']" header="Years" :rowspan="2" />
+                <Column v-if="colspans['time.day']" header="Day" :rowspan="2" />
+                <Column v-if="colspans['time.month']" header="Month" :rowspan="2" />
+                <Column v-if="colspans['time.year']" header="Year" :rowspan="2" />
+              </template>
+              <template v-for="investment of investments" :key="investment.name">
+                <Column
+                  v-if="colspans[`investment.${investment.name}`]"
+                  :header="investment.name"
+                  :colspan="colspans[`investment.${investment.name}`]"
+                />
+              </template>
+              <template v-for="loan of loans" :key="loan.name">
+                <Column
+                  v-if="colspans[`loan.${loan.name}`]"
+                  :header="loan.name"
+                  :colspan="colspans[`loan.${loan.name}`]"
+                />
+              </template>
+              <template v-if="colspans['cash']">
+                <Column v-if="colspans['cash.available']" :rowspan="2">
+                  <template #header>
+                    <span class="p-datatable-column-title align-middle">Cash Available </span>
+                    <i
+                      class="pi pi-info-circle align-middle ml-1"
+                      v-tooltip="{
+                        value:
+                          'This is how much cash you have available to you if you cash out on all your properties and pay off all of your debts.',
+                        autoHide: false,
+                      }"
+                    ></i>
+                  </template>
+                </Column>
+                <Column v-if="colspans['cash.spent']" :rowspan="2">
+                  <template #header>
+                    <span class="p-datatable-column-title align-middle">Cash Spent </span>
+                    <i
+                      class="pi pi-info-circle align-middle ml-1"
+                      v-tooltip="{
+                        value:
+                          'This is how much you have spent in cash so far from investment purchase fees, deposits, and maintenance costs.',
+                        autoHide: false,
+                      }"
+                    ></i>
+                  </template>
+                </Column>
+                <Column v-if="colspans['cash.profit']" :rowspan="2">
+                  <template #header>
+                    <span class="p-datatable-column-title align-middle">Cash Profit </span>
+                    <i
+                      class="pi pi-info-circle align-middle ml-1"
+                      v-tooltip="{
+                        value:
+                          'This is how much better off you\'d be if you cashed out on all your properties and paid off all of your debts versus never making any investments.',
+                        autoHide: false,
+                      }"
+                    ></i>
+                  </template>
+                </Column>
+              </template>
             </Row>
             <Row>
               <template v-for="investment of investments" :key="investment.name">
-                <Column header="Value" />
-                <Column header="Purchase Fee" />
-                <Column header="Maintenance Cost" />
-                <Column header="Maintenance Cash Spent" />
-                <Column header="Cash Out Fee" />
-                <Column header="Cash Out Value" />
+                <template v-if="colspans[`investment.${investment.name}`]">
+                  <Column v-if="colspans[`investment.${investment.name}.value`]" header="Value" />
+                  <Column
+                    v-if="colspans[`investment.${investment.name}.purchase_fee`]"
+                    header="Purchase Fee"
+                  />
+                  <Column
+                    v-if="colspans[`investment.${investment.name}.maintenance_cost`]"
+                    header="Maintenance Cost"
+                  />
+                  <Column
+                    v-if="colspans[`investment.${investment.name}.maintenance_cash_spent`]"
+                    header="Maintenance Cash Spent"
+                  />
+                  <Column
+                    v-if="colspans[`investment.${investment.name}.cash_out_fee`]"
+                    header="Cash Out Fee"
+                  />
+                  <Column
+                    v-if="colspans[`investment.${investment.name}.cash_out_value`]"
+                    header="Cash Out Value"
+                  />
+                </template>
               </template>
               <template v-for="loan of loans" :key="loan.name">
-                <Column header="Debt" />
-                <Column header="Paid" />
+                <template v-if="colspans[`loan.${loan.name}`]">
+                  <Column v-if="colspans[`loan.${loan.name}.debt`]" header="Debt" />
+                  <Column v-if="colspans[`loan.${loan.name}.paid`]" header="Paid" />
+                </template>
               </template>
             </Row>
           </ColumnGroup>
 
-          <Column v-if="cols.days" :field="(row) => row.days" />
-          <Column v-if="cols.months" :field="(row) => row.months" />
-          <Column v-if="cols.years" :field="(row) => row.years" />
-          <Column v-if="cols.day" :field="(row) => row.day" />
-          <Column v-if="cols.month" :field="(row) => row.month" />
-          <Column v-if="cols.year" :field="(row) => row.year" />
+          <template v-if="colspans['time']">
+            <Column v-if="colspans['time.days']" :field="(row) => row.days" />
+            <Column v-if="colspans['time.months']" :field="(row) => row.months" />
+            <Column v-if="colspans['time.years']" :field="(row) => row.years" />
+            <Column v-if="colspans['time.day']" :field="(row) => row.day" />
+            <Column v-if="colspans['time.month']" :field="(row) => row.month" />
+            <Column v-if="colspans['time.year']" :field="(row) => row.year" />
+          </template>
 
           <template v-for="(investment, index) of investments" :key="investment.name">
-            <Column :field="(row) => row.investments[index].value" />
-            <Column :field="(row) => row.investments[index].purchaseFee" />
-            <Column :field="(row) => row.investments[index].monthlyMaintenanceCost" />
-            <Column :field="(row) => row.investments[index].maintenanceCashSpent" />
-            <Column :field="(row) => row.investments[index].cashOutFee" />
-            <Column :field="(row) => row.investments[index].cashOutValue" />
+            <template v-if="colspans[`investment.${investment.name}`]">
+              <Column
+                v-if="colspans[`investment.${investment.name}.value`]"
+                :field="(row) => row.investments[index].value"
+              />
+              <Column
+                v-if="colspans[`investment.${investment.name}.purchase_fee`]"
+                :field="(row) => row.investments[index].purchaseFee"
+              />
+              <Column
+                v-if="colspans[`investment.${investment.name}.maintenance_cost`]"
+                :field="(row) => row.investments[index].monthlyMaintenanceCost"
+              />
+              <Column
+                v-if="colspans[`investment.${investment.name}.maintenance_cash_spent`]"
+                :field="(row) => row.investments[index].maintenanceCashSpent"
+              />
+              <Column
+                v-if="colspans[`investment.${investment.name}.cash_out_fee`]"
+                :field="(row) => row.investments[index].cashOutFee"
+              />
+              <Column
+                v-if="colspans[`investment.${investment.name}.cash_out_value`]"
+                :field="(row) => row.investments[index].cashOutValue"
+              />
+            </template>
           </template>
 
           <template v-for="(loan, index) of loans" :key="loan.name">
-            <Column :field="(row) => row.loans[index].debt" />
-            <Column :field="(row) => row.loans[index].paid" />
+            <template v-if="colspans[`loan.${loan.name}`]">
+              <Column
+                v-if="colspans[`loan.${loan.name}.debt`]"
+                :field="(row) => row.loans[index].debt"
+              />
+              <Column
+                v-if="colspans[`loan.${loan.name}.paid`]"
+                :field="(row) => row.loans[index].paid"
+              />
+            </template>
           </template>
 
-          <Column v-if="cols.cashAvailable" :field="(row) => row.cashAvailable" />
-          <Column v-if="cols.cashSpent" :field="(row) => row.cashAvailable" />
-          <Column v-if="cols.cashProfit" :field="(row) => row.cashAvailable" />
+          <template v-if="colspans['cash']">
+            <Column v-if="colspans['cash.available']" :field="(row) => row.cashAvailable" />
+            <Column v-if="colspans['cash.spent']" :field="(row) => row.cashAvailable" />
+            <Column v-if="colspans['cash.profit']" :field="(row) => row.cashAvailable" />
+          </template>
         </DataTable>
       </AppPanel>
     </main>
