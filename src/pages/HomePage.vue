@@ -14,11 +14,15 @@ import {
 } from '@/utils/maths'
 import {
   Checkbox,
+  Column,
+  ColumnGroup,
+  DataTable,
   InputGroup,
   InputGroupAddon,
   InputNumber,
   Message,
   RadioButton,
+  Row,
   ScrollTop,
 } from 'primevue'
 import { computed, ref } from 'vue'
@@ -40,32 +44,23 @@ const investments = ref<Investment[]>([
 ])
 
 const loans = ref<Loan[]>([
+  {
+    name: 'Mortgage',
+    amount: 130000,
+    annualInterestRatePercentage: 4.5,
+    monthlyInterestRatePercentage: getMonthlyInterestRatePercentage(4.5, 'nominal'),
+    interestRateType: 'nominal',
+    term: 10,
+    monthlyPayment: getMonthlyLoanPayment(130000, 4.5, 'nominal', 10),
+  },
   // {
-  //   name: 'Mortgage',
-  //   amount: 130000,
-  //   annualInterestRatePercentage: 4.5,
-  //   monthlyInterestRatePercentage: getMonthlyInterestRatePercentage(4.5, 'nominal'),
-  //   interestRateType: 'nominal',
-  //   term: 10,
-  //   monthlyPayment: getMonthlyLoanPayment(130000, 4.5, 'nominal', 10),
-  // },
-  // {
-  //   name: 'Loan (effective)',
+  //   name: 'Loan',
   //   amount: 2000,
   //   annualInterestRatePercentage: 10,
   //   monthlyInterestRatePercentage: getMonthlyInterestRatePercentage(10, 'effective'),
   //   interestRateType: 'effective',
   //   term: 3,
   //   monthlyPayment: getMonthlyLoanPayment(2000, 10, 'effective', 3),
-  // },
-  // {
-  //   name: 'Loan (nominal)',
-  //   amount: 2000,
-  //   annualInterestRatePercentage: 9.57,
-  //   monthlyInterestRatePercentage: getMonthlyInterestRatePercentage(9.57, 'nominal'),
-  //   interestRateType: 'nominal',
-  //   term: 3,
-  //   monthlyPayment: getMonthlyLoanPayment(2000, 9.57, 'nominal', 3),
   // },
 ])
 
@@ -386,7 +381,110 @@ const rows = computed(() => {
           </div>
         </div>
 
-        <table class="table-fixed border-separate border-spacing-4 mt-2">
+        <DataTable
+          :value="rows"
+          scrollable
+          scrollHeight="500px"
+          :virtual-scroller-options="{ itemSize: 46 }"
+        >
+          <ColumnGroup type="header">
+            <Row>
+              <Column v-if="cols.days" header="Days" :rowspan="2" />
+              <Column v-if="cols.months" header="Months" :rowspan="2" />
+              <Column v-if="cols.years" header="Years" :rowspan="2" />
+              <Column v-if="cols.day" header="Day" :rowspan="2" />
+              <Column v-if="cols.month" header="Month" :rowspan="2" />
+              <Column v-if="cols.year" header="Year" :rowspan="2" />
+              <Column
+                v-for="investment of investments"
+                :key="investment.name"
+                :header="investment.name"
+                :colspan="6"
+              />
+              <Column v-for="loan of loans" :key="loan.name" :header="loan.name" :colspan="2" />
+              <Column v-if="cols.cashAvailable" :rowspan="2">
+                <template #header>
+                  <span class="p-datatable-column-title align-middle">Cash Available </span>
+                  <i
+                    class="pi pi-info-circle align-middle ml-1"
+                    v-tooltip="{
+                      value:
+                        'This is how much cash you have available to you if you cash out on all your properties and pay off all of your debts.',
+                      autoHide: false,
+                    }"
+                  ></i>
+                </template>
+              </Column>
+              <Column v-if="cols.cashSpent" :rowspan="2">
+                <template #header>
+                  <span class="p-datatable-column-title align-middle">Cash Spent </span>
+                  <i
+                    class="pi pi-info-circle align-middle ml-1"
+                    v-tooltip="{
+                      value:
+                        'This is how much you have spent in cash so far from investment purchase fees, deposits, and maintenance costs.',
+                      autoHide: false,
+                    }"
+                  ></i>
+                </template>
+              </Column>
+              <Column v-if="cols.cashProfit" :rowspan="2">
+                <template #header>
+                  <span class="p-datatable-column-title align-middle">Cash Profit </span>
+                  <i
+                    class="pi pi-info-circle align-middle ml-1"
+                    v-tooltip="{
+                      value:
+                        'This is how much better off you\'d be if you cashed out on all your properties and paid off all of your debts versus never making any investments.',
+                      autoHide: false,
+                    }"
+                  ></i>
+                </template>
+              </Column>
+            </Row>
+            <Row>
+              <template v-for="investment of investments" :key="investment.name">
+                <Column header="Value" />
+                <Column header="Purchase Fee" />
+                <Column header="Maintenance Cost" />
+                <Column header="Maintenance Cash Spent" />
+                <Column header="Cash Out Fee" />
+                <Column header="Cash Out Value" />
+              </template>
+              <template v-for="loan of loans" :key="loan.name">
+                <Column header="Debt" />
+                <Column header="Paid" />
+              </template>
+            </Row>
+          </ColumnGroup>
+
+          <Column v-if="cols.days" :field="(row) => row.days" />
+          <Column v-if="cols.months" :field="(row) => row.months" />
+          <Column v-if="cols.years" :field="(row) => row.years" />
+          <Column v-if="cols.day" :field="(row) => row.day" />
+          <Column v-if="cols.month" :field="(row) => row.month" />
+          <Column v-if="cols.year" :field="(row) => row.year" />
+
+          <template v-for="(investment, index) of investments" :key="investment.name">
+            <Column :field="(row) => row.investments[index].value" />
+            <Column :field="(row) => row.investments[index].purchaseFee" />
+            <Column :field="(row) => row.investments[index].monthlyMaintenanceCost" />
+            <Column :field="(row) => row.investments[index].maintenanceCashSpent" />
+            <Column :field="(row) => row.investments[index].cashOutFee" />
+            <Column :field="(row) => row.investments[index].cashOutValue" />
+          </template>
+
+          <template v-for="(loan, index) of loans" :key="loan.name">
+            <Column :field="(row) => row.loans[index].debt" />
+            <Column :field="(row) => row.loans[index].paid" />
+          </template>
+
+          <Column v-if="cols.cashAvailable" :field="(row) => row.cashAvailable" />
+          <Column v-if="cols.cashSpent" :field="(row) => row.cashAvailable" />
+          <Column v-if="cols.cashProfit" :field="(row) => row.cashAvailable" />
+        </DataTable>
+
+        <table class="hidden table-fixed border-separate border-spacing-4 mt-2">
           <thead class="text-left">
             <tr>
               <th v-if="cols.days">Days</th>
