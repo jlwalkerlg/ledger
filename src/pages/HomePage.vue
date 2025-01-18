@@ -426,7 +426,9 @@ const rows = computed(() => {
               :option-group-children="(group: ColGroup) => group.items"
               :show-toggle-all="false"
               class="w-full md:w-80"
-            />
+            >
+              <template #value="{ value }">{{ value.length }} selected</template>
+            </MultiSelect>
           </div>
 
           <div class="flex items-center gap-4">
