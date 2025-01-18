@@ -3,8 +3,9 @@ import { Column, DataTable } from 'primevue'
 import CurrencyText from './CurrencyText.vue'
 import PercentageText from './PercentageText.vue'
 import { ref } from 'vue'
-import type { Loan } from './LoanModal.vue'
 import LoanModal from './LoanModal.vue'
+import InterestRateText from './InterestRateText.vue'
+import type { Loan } from '@/models/loans'
 
 const loans = defineModel<Loan[]>({
   required: true,
@@ -59,9 +60,19 @@ const onSaveLoan = (loan: Loan) => {
       </template>
     </Column>
 
+    <Column header="Interest Rate">
+      <template #body="{ data: loan }: { data: Loan }">
+        <InterestRateText
+          :annual-rate-percentage="loan.annualInterestRatePercentage"
+          :type="loan.interestRateType"
+        />
+      </template>
+    </Column>
+
     <Column header="Annual Interest Rate">
       <template #body="{ data: loan }: { data: Loan }">
         <PercentageText :value="loan.annualInterestRatePercentage" />
+        ({{ loan.interestRateType }})
       </template>
     </Column>
 

@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import AppLayout from '@/components/AppLayout.vue'
 import AppPanel from '@/components/AppPanel.vue'
-import type { Investment } from '@/components/InvestmentModal.vue'
 import InvestmentsTable from '@/components/InvestmentsTable.vue'
-import type { Loan } from '@/components/LoanModal.vue'
 import LoansTable from '@/components/LoansTable.vue'
+import type { Investment } from '@/models/investments'
+import type { Loan } from '@/models/loans'
 import { toGbp } from '@/utils/formatters'
 import {
   addPercentage,
-  aerToMonthly,
+  annualToMonthlyInterestRatePercentage,
   calculateMonthlyLoanPayment,
   percentageOf,
 } from '@/utils/maths'
@@ -26,26 +26,45 @@ import { computed, ref } from 'vue'
 const years = ref(10)
 
 const investments = ref<Investment[]>([
-  {
-    name: 'House',
-    initialValue: 144444,
-    purchaseFeePercentage: 5,
-    annualGrowthRatePercentage: 3,
-    monthlyGrowthRatePercentage: aerToMonthly(3),
-    annualMaintenanceCostPercentage: 1,
-    monthlyMaintenanceCostPercentage: aerToMonthly(1),
-    cashOutFeePercentage: 5,
-  },
+  // {
+  //   name: 'House',
+  //   initialValue: 144444,
+  //   purchaseFeePercentage: 5,
+  //   annualGrowthRatePercentage: 3,
+  //   monthlyGrowthRatePercentage: annualToMonthlyInterestRatePercentage(3, 'effective'),
+  //   annualMaintenanceCostPercentage: 1,
+  //   monthlyMaintenanceCostPercentage: annualToMonthlyInterestRatePercentage(1, 'effective'),
+  //   cashOutFeePercentage: 5,
+  // },
 ])
 
 const loans = ref<Loan[]>([
+  // {
+  //   name: 'Mortgage',
+  //   amount: 130000,
+  //   annualInterestRatePercentage: 4.5,
+  //   monthlyInterestRatePercentage: annualToMonthlyInterestRatePercentage(4.5, 'nominal'),
+  //   interestRateType: 'nominal',
+  //   term: 10,
+  //   monthlyPayment: calculateMonthlyLoanPayment(130000, 4.5, 'nominal', 10),
+  // },
   {
-    name: 'Mortgage',
-    amount: 130000,
-    annualInterestRatePercentage: 4.5,
-    monthlyInterestRatePercentage: aerToMonthly(4.5),
-    term: 10,
-    monthlyPayment: calculateMonthlyLoanPayment(130000, 4.5, 10),
+    name: 'Loan (effective)',
+    amount: 2000,
+    annualInterestRatePercentage: 10,
+    monthlyInterestRatePercentage: annualToMonthlyInterestRatePercentage(10, 'effective'),
+    interestRateType: 'effective',
+    term: 3,
+    monthlyPayment: calculateMonthlyLoanPayment(2000, 10, 'effective', 3),
+  },
+  {
+    name: 'Loan (nominal)',
+    amount: 2000,
+    annualInterestRatePercentage: 9.57,
+    monthlyInterestRatePercentage: annualToMonthlyInterestRatePercentage(9.57, 'nominal'),
+    interestRateType: 'nominal',
+    term: 3,
+    monthlyPayment: calculateMonthlyLoanPayment(2000, 9.57, 'nominal', 3),
   },
 ])
 
@@ -71,9 +90,9 @@ const cols = ref({
   day: false,
   month: false,
   year: false,
-  cashAvailable: true,
-  cashSpent: true,
-  cashProfit: true,
+  cashAvailable: false,
+  cashSpent: false,
+  cashProfit: false,
 })
 
 const groupBy = ref('years')
@@ -117,6 +136,7 @@ const breakdown = computed(() => {
     const debt = loan.amount
     const paid = 0
     const annualInterestRatePercentage = loan.annualInterestRatePercentage
+    const monthlyInterestRatePercentage = loan.monthlyInterestRatePercentage
     const term = loan.term
     const monthlyPayment = loan.monthlyPayment
 
@@ -125,6 +145,7 @@ const breakdown = computed(() => {
       debt,
       paid,
       annualInterestRatePercentage,
+      monthlyInterestRatePercentage,
       term,
       monthlyPayment,
     }
@@ -157,10 +178,11 @@ const breakdown = computed(() => {
 
       for (const loan of loansBreakdown) {
         if (years <= loan.term) {
-          // TODO: can i use monthly interest rate percentage here?
-          loan.debt *= 1 + loan.annualInterestRatePercentage / 100 / 12
-          loan.debt -= loan.monthlyPayment
-          loan.paid += loan.monthlyPayment
+          loan.debt *= 1 + loan.monthlyInterestRatePercentage / 100
+
+          const loanPayment = Math.min(loan.debt, loan.monthlyPayment)
+          loan.debt -= loanPayment
+          loan.paid += loanPayment
         }
       }
     }
@@ -205,7 +227,7 @@ const breakdown = computed(() => {
       })),
       loans: loansBreakdown.map((loan) => ({
         name: loan.name,
-        debt: toGbp(Math.max(0, loan.debt)),
+        debt: toGbp(loan.debt),
         paid: toGbp(loan.paid),
       })),
       cashAvailable: toGbp(cashAvailable),

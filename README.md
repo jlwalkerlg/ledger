@@ -1,6 +1,11 @@
 # ledger
 
-This template should help get you started developing with Vue 3 in Vite.
+## Resources
+
+- [Mortgage Repayment Calculator](https://tools.moneyhelper.org.uk/en/mortgage-calculator)
+- [Personal Loan Repayment Calculator](https://www.moneysupermarket.com/loans/calculator/)
+- [Investment Calculator](https://www.calculator.net/interest-calculator.html)
+- [Effective Interest Rate Calculator](https://www.calculatorsoup.com/calculators/financial/effective-interest-rate-calculator.php)
 
 ## Recommended IDE Setup
 

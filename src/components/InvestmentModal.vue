@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Investment } from '@/models/investments'
 import { aerToMonthly } from '@/utils/maths'
 import {
   Button,
@@ -11,39 +12,17 @@ import {
 } from 'primevue'
 import { computed, ref, watch } from 'vue'
 
-export type Investment = {
-  name: string
-  initialValue: number
-  purchaseFeePercentage: number
-  annualGrowthRatePercentage: number
-  monthlyGrowthRatePercentage: number
-  annualMaintenanceCostPercentage: number
-  monthlyMaintenanceCostPercentage: number
-  cashOutFeePercentage: number
-}
-
-type Values = {
-  name: string
-  initialValue: number
-  purchaseFeePercentage: number
-  annualGrowthRatePercentage: number
-  annualMaintenanceCostPercentage: number
-  cashOutFeePercentage: number
-}
-
 const defaults = {
-  investment: {
-    name: 'House',
-    initialValue: 144444,
-    purchaseFeePercentage: 5,
-    annualGrowthRatePercentage: 3,
-    annualMaintenanceCostPercentage: 1,
-    cashOutFeePercentage: 5,
-  },
+  name: 'House',
+  initialValue: 144444,
+  purchaseFeePercentage: 5,
+  annualGrowthRatePercentage: 3,
+  annualMaintenanceCostPercentage: 1,
+  cashOutFeePercentage: 5,
 }
 
 const { investment } = defineProps<{
-  investment?: Values
+  investment?: Investment
 }>()
 
 const emit = defineEmits<{
@@ -52,21 +31,18 @@ const emit = defineEmits<{
 
 const visible = defineModel<boolean>('visible')
 
-const name = ref(investment?.name ?? defaults.investment.name)
-const initialValue = ref(investment?.initialValue ?? defaults.investment.initialValue)
+const name = ref(investment?.name ?? defaults.name)
+const initialValue = ref(investment?.initialValue ?? defaults.initialValue)
 const purchaseFeePercentage = ref(
-  investment?.purchaseFeePercentage ?? defaults.investment.purchaseFeePercentage,
+  investment?.purchaseFeePercentage ?? defaults.purchaseFeePercentage,
 )
 const annualGrowthRatePercentage = ref(
-  investment?.annualGrowthRatePercentage ?? defaults.investment.annualGrowthRatePercentage,
+  investment?.annualGrowthRatePercentage ?? defaults.annualGrowthRatePercentage,
 )
 const annualMaintenanceCostPercentage = ref(
-  investment?.annualMaintenanceCostPercentage ??
-    defaults.investment.annualMaintenanceCostPercentage,
+  investment?.annualMaintenanceCostPercentage ?? defaults.annualMaintenanceCostPercentage,
 )
-const cashOutFeePercentage = ref(
-  investment?.cashOutFeePercentage ?? defaults.investment.cashOutFeePercentage,
-)
+const cashOutFeePercentage = ref(investment?.cashOutFeePercentage ?? defaults.cashOutFeePercentage)
 
 const initialPurchasePrice = computed(
   () => initialValue.value * (1 + purchaseFeePercentage.value / 100),
@@ -98,17 +74,15 @@ const onSave = () => {
 
 watch(visible, (visible) => {
   if (visible) {
-    name.value = investment?.name ?? defaults.investment.name
-    initialValue.value = investment?.initialValue ?? defaults.investment.initialValue
+    name.value = investment?.name ?? defaults.name
+    initialValue.value = investment?.initialValue ?? defaults.initialValue
     purchaseFeePercentage.value =
-      investment?.purchaseFeePercentage ?? defaults.investment.purchaseFeePercentage
+      investment?.purchaseFeePercentage ?? defaults.purchaseFeePercentage
     annualGrowthRatePercentage.value =
-      investment?.annualGrowthRatePercentage ?? defaults.investment.annualGrowthRatePercentage
+      investment?.annualGrowthRatePercentage ?? defaults.annualGrowthRatePercentage
     annualMaintenanceCostPercentage.value =
-      investment?.annualMaintenanceCostPercentage ??
-      defaults.investment.annualMaintenanceCostPercentage
-    cashOutFeePercentage.value =
-      investment?.cashOutFeePercentage ?? defaults.investment.cashOutFeePercentage
+      investment?.annualMaintenanceCostPercentage ?? defaults.annualMaintenanceCostPercentage
+    cashOutFeePercentage.value = investment?.cashOutFeePercentage ?? defaults.cashOutFeePercentage
   }
 })
 </script>
@@ -270,10 +244,7 @@ watch(visible, (visible) => {
 
       <div class="flex items-center justify-end gap-4">
         <Button type="button" variant="outlined" @click="onCancel">Cancel</Button>
-        <Button type="submit">
-          <template v-if="investment">Edit</template>
-          <template v-else>Add</template>
-        </Button>
+        <Button type="submit">Save</Button>
       </div>
     </form>
   </Dialog>
