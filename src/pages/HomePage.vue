@@ -144,10 +144,8 @@ const COL_OPTIONS = computed<ColGroup[]>(() => [
   {
     label: 'Time',
     items: [
-      { label: 'Days', value: 'time.days', group: 'time' },
       { label: 'Months', value: 'time.months', group: 'time' },
       { label: 'Years', value: 'time.years', group: 'time' },
-      { label: 'Day', value: 'time.day', group: 'time' },
       { label: 'Month', value: 'time.month', group: 'time' },
       { label: 'Year', value: 'time.year', group: 'time' },
     ],
@@ -215,7 +213,6 @@ const COL_OPTIONS = computed<ColGroup[]>(() => [
 const groupBy = ref('years')
 
 const GROUP_BY_OPTIONS = [
-  { name: 'Days', value: 'days' },
   { name: 'Months', value: 'months' },
   { name: 'Years', value: 'years' },
 ]
@@ -278,18 +275,13 @@ const breakdown = computed(() => {
     }
   })
 
-  return Array.from({ length: years.value * 360 + 1 }, (_, i) => {
-    const days = i
-    const months = Math.floor(i / 30)
-    const years = Math.floor(i / 360)
+  return Array.from({ length: years.value * 12 + 1 }, (_, months) => {
+    const years = Math.floor(months / 12)
 
-    const day = days + 1
     const month = months + 1
     const year = years + 1
 
-    const isFirstDayOfMonth = day % 30 === 1
-
-    if (isFirstDayOfMonth && months > 0) {
+    if (months > 0) {
       for (const investment of investmentsBreakdown) {
         investment.maintenanceCashSpent += investment.monthlyMaintenanceCost
         investment.value = addPercentage(investment.value, investment.monthlyGrowthRatePercentage)
@@ -336,10 +328,8 @@ const breakdown = computed(() => {
     const cashProfit = cashAvailable - cashSpent
 
     return {
-      days,
       months,
       years,
-      day,
       month,
       year,
       investments: investmentsBreakdown.map((investment) => ({
@@ -367,12 +357,8 @@ const breakdown = computed(() => {
 })
 
 const rows = computed(() => {
-  if (groupBy.value === 'months') {
-    return breakdown.value.filter((row) => row.days % 30 === 0)
-  }
-
   if (groupBy.value === 'years') {
-    return breakdown.value.filter((row) => row.days % 360 === 0)
+    return breakdown.value.filter((row) => row.months % 12 === 0)
   }
 
   return breakdown.value
@@ -466,10 +452,8 @@ const rows = computed(() => {
           <ColumnGroup type="header">
             <Row>
               <template v-if="colspans['time']">
-                <Column v-if="colspans['time.days']" header="Days" :rowspan="2" />
                 <Column v-if="colspans['time.months']" header="Months" :rowspan="2" />
                 <Column v-if="colspans['time.years']" header="Years" :rowspan="2" />
-                <Column v-if="colspans['time.day']" header="Day" :rowspan="2" />
                 <Column v-if="colspans['time.month']" header="Month" :rowspan="2" />
                 <Column v-if="colspans['time.year']" header="Year" :rowspan="2" />
               </template>
@@ -565,10 +549,8 @@ const rows = computed(() => {
           </ColumnGroup>
 
           <template v-if="colspans['time']">
-            <Column v-if="colspans['time.days']" :field="(row) => row.days" />
             <Column v-if="colspans['time.months']" :field="(row) => row.months" />
             <Column v-if="colspans['time.years']" :field="(row) => row.years" />
-            <Column v-if="colspans['time.day']" :field="(row) => row.day" />
             <Column v-if="colspans['time.month']" :field="(row) => row.month" />
             <Column v-if="colspans['time.year']" :field="(row) => row.year" />
           </template>
