@@ -11,10 +11,6 @@ const router = createRouter({
       path: '/',
       component: () => import('./pages/HomePage.vue'),
     },
-    {
-      path: '/backup',
-      component: () => import('./pages/HomePageBackup.vue'),
-    },
   ],
 })
 
