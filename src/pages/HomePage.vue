@@ -29,17 +29,17 @@ import {
 } from 'primevue'
 import { computed, ref } from 'vue'
 
-const years = ref(5)
+const years = ref(1)
 
 const investments = ref<Investment[]>([
   {
     id: uniqueId(),
     name: 'House',
-    initialValue: 325000,
+    initialValue: 100000,
     purchaseFeePercentage: 5,
     annualGrowthRatePercentage: 5,
-    monthlyGrowthRatePercentage: getMonthlyInterestRatePercentage(5, 'effective'),
     growthRateType: 'effective',
+    monthlyGrowthRatePercentage: getMonthlyInterestRatePercentage(5, 'effective'),
     annualMaintenanceCostPercentage: 1,
     monthlyMaintenanceCostPercentage: getMonthlyInterestRatePercentage(1, 'effective'),
     cashOutFeePercentage: 5,
@@ -50,12 +50,12 @@ const loans = ref<Loan[]>([
   {
     id: uniqueId(),
     name: 'Mortgage',
-    amount: 130000,
+    amount: 80000,
     annualInterestRatePercentage: 4.5,
-    monthlyInterestRatePercentage: getMonthlyInterestRatePercentage(4.5, 'nominal'),
     interestRateType: 'nominal',
-    term: 10,
-    monthlyPayment: getMonthlyLoanPayment(130000, 4.5, 'nominal', 10),
+    monthlyInterestRatePercentage: getMonthlyInterestRatePercentage(4.5, 'nominal'),
+    term: 15,
+    monthlyPayment: getMonthlyLoanPayment(80000, 4.5, 'nominal', 15),
   },
   // {
   //   name: 'Loan',
@@ -91,10 +91,11 @@ const cols = ref([
 
       return [
         `${group}.value`,
-        `${group}.purchase_fee`,
-        `${group}.maintenance_cost`,
+        // `${group}.initial_purchase_fee`,
+        // `${group}.initial_purchase_price`,
+        // `${group}.maintenance_cost`,
         `${group}.maintenance_cash_spent`,
-        `${group}.cash_out_fee`,
+        // `${group}.cash_out_fee`,
         `${group}.cash_out_value`,
       ]
     }),
@@ -107,7 +108,7 @@ const cols = ref([
     }),
   ),
   'cash.available',
-  'cash.spent',
+  'cash.invested',
   'cash.profit',
 ])
 
@@ -158,8 +159,13 @@ const COL_OPTIONS = computed<ColGroup[]>(() => [
       items: [
         { label: 'Value', value: `${group}.value`, group },
         {
-          label: 'Purchase Fee',
-          value: `${group}.purchase_fee`,
+          label: 'Initial Purchase Fee',
+          value: `${group}.initial_purchase_fee`,
+          group,
+        },
+        {
+          label: 'Initial Purchase Price',
+          value: `${group}.initial_purchase_price`,
           group,
         },
         {
@@ -204,7 +210,7 @@ const COL_OPTIONS = computed<ColGroup[]>(() => [
     label: 'Cash',
     items: [
       { label: 'Available', value: 'cash.available', group: 'cash' },
-      { label: 'Spent', value: 'cash.spent', group: 'cash' },
+      { label: 'Invested', value: 'cash.invested', group: 'cash' },
       { label: 'Profit', value: 'cash.profit', group: 'cash' },
     ],
   },
@@ -222,9 +228,11 @@ const breakdown = computed(() => {
     const id = investment.id
     const name = investment.name
     const value = investment.initialValue
-    const purchaseFeePercentage = investment.purchaseFeePercentage
-    const purchaseFee = percentageOf(investment.initialValue, investment.purchaseFeePercentage)
-    const purchasePrice = value + purchaseFee
+    const initialPurchaseFee = percentageOf(
+      investment.initialValue,
+      investment.purchaseFeePercentage,
+    )
+    const initialPurchasePrice = value + initialPurchaseFee
     const monthlyGrowthRatePercentage = investment.monthlyGrowthRatePercentage
     const maintenanceCashSpent = 0
     const monthlyMaintenanceCostPercentage = investment.monthlyMaintenanceCostPercentage
@@ -240,9 +248,8 @@ const breakdown = computed(() => {
       id,
       name,
       value,
-      purchaseFeePercentage,
-      purchaseFee,
-      purchasePrice,
+      initialPurchaseFee,
+      initialPurchasePrice,
       monthlyGrowthRatePercentage,
       maintenanceCashSpent,
       monthlyMaintenanceCostPercentage,
@@ -289,8 +296,6 @@ const breakdown = computed(() => {
           investment.value,
           investment.monthlyMaintenanceCostPercentage,
         )
-        investment.purchaseFee = percentageOf(investment.value, investment.purchaseFeePercentage)
-        investment.purchasePrice = investment.value + investment.purchaseFee
         investment.cashOutFee = percentageOf(investment.value, investment.cashOutFeePercentage)
         investment.cashOutValue = investment.value - investment.cashOutFee
       }
@@ -320,12 +325,12 @@ const breakdown = computed(() => {
     const totalLoanPayments = loansBreakdown.reduce((prev, curr) => prev + curr.paid, 0)
 
     const cashAvailable = totalInvestmentsCashOutValue - totalDebt
-    const cashSpent =
+    const cashInvested =
       totalInvestmentsInitialPurchasePrice.value -
       totalInitialLoanAmount.value +
       totalInvestmentsMaintenanceCashSpent +
       totalLoanPayments
-    const cashProfit = cashAvailable - cashSpent
+    const cashProfit = cashAvailable - cashInvested
 
     return {
       months,
@@ -336,8 +341,8 @@ const breakdown = computed(() => {
         id: investment.id,
         name: investment.name,
         value: toGbp(investment.value),
-        purchaseFee: toGbp(investment.purchaseFee),
-        purchasePrice: toGbp(investment.purchasePrice),
+        initialPurchaseFee: toGbp(investment.initialPurchaseFee),
+        initialPurchasePrice: toGbp(investment.initialPurchasePrice),
         monthlyMaintenanceCost: toGbp(investment.monthlyMaintenanceCost),
         maintenanceCashSpent: toGbp(investment.maintenanceCashSpent),
         cashOutFee: toGbp(investment.cashOutFee),
@@ -350,7 +355,7 @@ const breakdown = computed(() => {
         paid: toGbp(loan.paid),
       })),
       cashAvailable: toGbp(cashAvailable),
-      cashSpent: toGbp(Math.max(0, cashSpent)),
+      cashInvested: toGbp(Math.max(0, cashInvested)),
       cashProfit: toGbp(cashProfit),
     }
   })
@@ -487,14 +492,14 @@ const rows = computed(() => {
                     ></i>
                   </template>
                 </Column>
-                <Column v-if="colspans['cash.spent']" :rowspan="2">
+                <Column v-if="colspans['cash.invested']" :rowspan="2">
                   <template #header>
-                    <span class="p-datatable-column-title align-middle">Cash Spent </span>
+                    <span class="p-datatable-column-title align-middle">Cash Invested </span>
                     <i
                       class="pi pi-info-circle align-middle ml-1"
                       v-tooltip="{
                         value:
-                          'This is how much you have spent in cash so far from investment purchase fees, deposits, and maintenance costs.',
+                          'This is how much you have invested in cash so far from investment purchase fees, deposits, and maintenance costs.',
                         autoHide: false,
                       }"
                     ></i>
@@ -520,8 +525,12 @@ const rows = computed(() => {
                 <template v-if="colspans[`investment.${investment.id}`]">
                   <Column v-if="colspans[`investment.${investment.id}.value`]" header="Value" />
                   <Column
-                    v-if="colspans[`investment.${investment.id}.purchase_fee`]"
-                    header="Purchase Fee"
+                    v-if="colspans[`investment.${investment.id}.initial_purchase_fee`]"
+                    header="Initial Purchase Fee"
+                  />
+                  <Column
+                    v-if="colspans[`investment.${investment.id}.initial_purchase_price`]"
+                    header="Initial Purchase Price"
                   />
                   <Column
                     v-if="colspans[`investment.${investment.id}.maintenance_cost`]"
@@ -564,8 +573,12 @@ const rows = computed(() => {
                 :field="(row) => row.investments[index].value"
               />
               <Column
-                v-if="colspans[`investment.${investment.id}.purchase_fee`]"
-                :field="(row) => row.investments[index].purchaseFee"
+                v-if="colspans[`investment.${investment.id}.initial_purchase_fee`]"
+                :field="(row) => row.investments[index].initialPurchaseFee"
+              />
+              <Column
+                v-if="colspans[`investment.${investment.id}.initial_purchase_price`]"
+                :field="(row) => row.investments[index].initialPurchasePrice"
               />
               <Column
                 v-if="colspans[`investment.${investment.id}.maintenance_cost`]"
@@ -601,8 +614,8 @@ const rows = computed(() => {
 
           <template v-if="colspans['cash']">
             <Column v-if="colspans['cash.available']" :field="(row) => row.cashAvailable" />
-            <Column v-if="colspans['cash.spent']" :field="(row) => row.cashAvailable" />
-            <Column v-if="colspans['cash.profit']" :field="(row) => row.cashAvailable" />
+            <Column v-if="colspans['cash.invested']" :field="(row) => row.cashInvested" />
+            <Column v-if="colspans['cash.profit']" :field="(row) => row.cashProfit" />
           </template>
         </DataTable>
       </AppPanel>
