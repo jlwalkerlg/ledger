@@ -48,6 +48,8 @@ const onSaveLoan = (loan: Loan) => {
       </div>
     </template>
 
+    <template #empty>No loans to show.</template>
+
     <Column header="Name">
       <template #body="{ data: loan }: { data: Loan }">
         {{ loan.name }}

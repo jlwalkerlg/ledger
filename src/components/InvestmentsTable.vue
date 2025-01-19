@@ -50,7 +50,7 @@ const onSaveInvestment = (investment: Investment) => {
       </div>
     </template>
 
-    <template #empty> No investments to show. </template>
+    <template #empty>No investments to show.</template>
 
     <Column header="Name">
       <template #body="{ data: investment }: { data: Investment }">
