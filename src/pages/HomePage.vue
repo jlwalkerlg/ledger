@@ -29,34 +29,48 @@ import {
 } from 'primevue'
 import { computed, ref } from 'vue'
 
-const years = ref(1)
+const years = ref(5)
 
 const investments = ref<Investment[]>([
   {
     id: uniqueId(),
-    name: 'House',
-    initialValue: 100000,
-    purchaseFeePercentage: 5,
-    annualGrowthRatePercentage: 5,
-    growthRateType: 'effective',
-    monthlyGrowthRatePercentage: getMonthlyInterestRatePercentage(5, 'effective'),
-    annualMaintenanceCostPercentage: 1,
-    monthlyMaintenanceCostPercentage: getMonthlyInterestRatePercentage(1, 'effective'),
-    cashOutFeePercentage: 5,
+    name: 'ISA',
+    initialValue: 20000,
+    purchaseFeePercentage: 0,
+    monthlyContribution: 400,
+    annualGrowthRatePercentage: 4.02,
+    growthRateType: 'nominal',
+    monthlyGrowthRatePercentage: getMonthlyInterestRatePercentage(4.02, 'nominal'),
+    annualMaintenanceCostPercentage: 0,
+    monthlyMaintenanceCostPercentage: getMonthlyInterestRatePercentage(0, 'effective'),
+    cashOutFeePercentage: 0,
   },
+  // {
+  //   id: uniqueId(),
+  //   name: 'House',
+  //   initialValue: 100000,
+  //   purchaseFeePercentage: 5,
+  //   monthlyContribution: 0,
+  //   annualGrowthRatePercentage: 5,
+  //   growthRateType: 'effective',
+  //   monthlyGrowthRatePercentage: getMonthlyInterestRatePercentage(5, 'effective'),
+  //   annualMaintenanceCostPercentage: 1,
+  //   monthlyMaintenanceCostPercentage: getMonthlyInterestRatePercentage(1, 'effective'),
+  //   cashOutFeePercentage: 5,
+  // },
 ])
 
 const loans = ref<Loan[]>([
-  {
-    id: uniqueId(),
-    name: 'Mortgage',
-    amount: 80000,
-    annualInterestRatePercentage: 4.5,
-    interestRateType: 'nominal',
-    monthlyInterestRatePercentage: getMonthlyInterestRatePercentage(4.5, 'nominal'),
-    term: 15,
-    monthlyPayment: getMonthlyLoanPayment(80000, 4.5, 'nominal', 15),
-  },
+  // {
+  //   id: uniqueId(),
+  //   name: 'Mortgage',
+  //   amount: 80000,
+  //   annualInterestRatePercentage: 4.5,
+  //   interestRateType: 'nominal',
+  //   monthlyInterestRatePercentage: getMonthlyInterestRatePercentage(4.5, 'nominal'),
+  //   term: 15,
+  //   monthlyPayment: getMonthlyLoanPayment(80000, 4.5, 'nominal', 15),
+  // },
   // {
   //   name: 'Loan',
   //   amount: 2000,
@@ -93,6 +107,7 @@ const cols = ref([
         `${group}.value`,
         // `${group}.initial_purchase_fee`,
         // `${group}.initial_purchase_price`,
+        `${group}.total_contributions`,
         // `${group}.maintenance_cost`,
         `${group}.maintenance_cash_spent`,
         // `${group}.cash_out_fee`,
@@ -169,6 +184,11 @@ const COL_OPTIONS = computed<ColGroup[]>(() => [
           group,
         },
         {
+          label: 'Total Contributions',
+          value: `${group}.total_contributions`,
+          group,
+        },
+        {
           label: 'Maintenance Cost',
           value: `${group}.maintenance_cost`,
           group,
@@ -233,6 +253,8 @@ const breakdown = computed(() => {
       investment.purchaseFeePercentage,
     )
     const initialPurchasePrice = value + initialPurchaseFee
+    const monthlyContribution = investment.monthlyContribution
+    const totalContributions = 0
     const monthlyGrowthRatePercentage = investment.monthlyGrowthRatePercentage
     const maintenanceCashSpent = 0
     const monthlyMaintenanceCostPercentage = investment.monthlyMaintenanceCostPercentage
@@ -250,6 +272,8 @@ const breakdown = computed(() => {
       value,
       initialPurchaseFee,
       initialPurchasePrice,
+      monthlyContribution,
+      totalContributions,
       monthlyGrowthRatePercentage,
       maintenanceCashSpent,
       monthlyMaintenanceCostPercentage,
@@ -290,6 +314,8 @@ const breakdown = computed(() => {
 
     if (months > 0) {
       for (const investment of investmentsBreakdown) {
+        investment.totalContributions += investment.monthlyContribution
+        investment.value += investment.monthlyContribution
         investment.maintenanceCashSpent += investment.monthlyMaintenanceCost
         investment.value = addPercentage(investment.value, investment.monthlyGrowthRatePercentage)
         investment.monthlyMaintenanceCost = percentageOf(
@@ -315,6 +341,12 @@ const breakdown = computed(() => {
       (prev, curr) => prev + curr.cashOutValue,
       0,
     )
+
+    const totalInvestmentsContributions = investmentsBreakdown.reduce(
+      (prev, curr) => prev + curr.totalContributions,
+      0,
+    )
+
     const totalInvestmentsMaintenanceCashSpent = investmentsBreakdown.reduce(
       (prev, curr) => prev + curr.maintenanceCashSpent,
       0,
@@ -328,6 +360,7 @@ const breakdown = computed(() => {
     const cashInvested =
       totalInvestmentsInitialPurchasePrice.value -
       totalInitialLoanAmount.value +
+      totalInvestmentsContributions +
       totalInvestmentsMaintenanceCashSpent +
       totalLoanPayments
     const cashProfit = cashAvailable - cashInvested
@@ -343,6 +376,7 @@ const breakdown = computed(() => {
         value: toGbp(investment.value),
         initialPurchaseFee: toGbp(investment.initialPurchaseFee),
         initialPurchasePrice: toGbp(investment.initialPurchasePrice),
+        totalContributions: toGbp(investment.totalContributions),
         monthlyMaintenanceCost: toGbp(investment.monthlyMaintenanceCost),
         maintenanceCashSpent: toGbp(investment.maintenanceCashSpent),
         cashOutFee: toGbp(investment.cashOutFee),
@@ -533,6 +567,10 @@ const rows = computed(() => {
                     header="Initial Purchase Price"
                   />
                   <Column
+                    v-if="colspans[`investment.${investment.id}.total_contributions`]"
+                    header="Total Contributions"
+                  />
+                  <Column
                     v-if="colspans[`investment.${investment.id}.maintenance_cost`]"
                     header="Maintenance Cost"
                   />
@@ -579,6 +617,10 @@ const rows = computed(() => {
               <Column
                 v-if="colspans[`investment.${investment.id}.initial_purchase_price`]"
                 :field="(row) => row.investments[index].initialPurchasePrice"
+              />
+              <Column
+                v-if="colspans[`investment.${investment.id}.total_contributions`]"
+                :field="(row) => row.investments[index].totalContributions"
               />
               <Column
                 v-if="colspans[`investment.${investment.id}.maintenance_cost`]"

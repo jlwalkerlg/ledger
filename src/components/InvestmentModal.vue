@@ -19,6 +19,7 @@ const defaults = {
   name: 'House',
   initialValue: 144444,
   purchaseFeePercentage: 5,
+  monthlyContribution: 0,
   annualGrowthRatePercentage: 3,
   growthRateType: 'effective' as InterestRateType,
   annualMaintenanceCostPercentage: 1,
@@ -40,6 +41,7 @@ const initialValue = ref(investment?.initialValue ?? defaults.initialValue)
 const purchaseFeePercentage = ref(
   investment?.purchaseFeePercentage ?? defaults.purchaseFeePercentage,
 )
+const monthlyContribution = ref(investment?.monthlyContribution ?? defaults.monthlyContribution)
 const annualGrowthRatePercentage = ref(
   investment?.annualGrowthRatePercentage ?? defaults.annualGrowthRatePercentage,
 )
@@ -71,6 +73,7 @@ const onSave = () => {
     name: name.value,
     initialValue: initialValue.value,
     purchaseFeePercentage: purchaseFeePercentage.value,
+    monthlyContribution: monthlyContribution.value,
     annualGrowthRatePercentage: annualGrowthRatePercentage.value,
     monthlyGrowthRatePercentage: monthlyGrowthRatePercentage.value,
     growthRateType: growthRateType.value,
@@ -87,6 +90,7 @@ watch(visible, (visible) => {
     initialValue.value = investment?.initialValue ?? defaults.initialValue
     purchaseFeePercentage.value =
       investment?.purchaseFeePercentage ?? defaults.purchaseFeePercentage
+    monthlyContribution.value = investment?.monthlyContribution ?? defaults.monthlyContribution
     annualGrowthRatePercentage.value =
       investment?.annualGrowthRatePercentage ?? defaults.annualGrowthRatePercentage
     growthRateType.value = investment?.growthRateType ?? defaults.growthRateType
@@ -145,6 +149,22 @@ watch(visible, (visible) => {
         <Message size="small" severity="secondary" variant="simple">
           Enter the fee associated with purchasing the investment as a percentage of the investment
           value.
+        </Message>
+      </div>
+
+      <div class="space-y-2">
+        <label for="monthly_contribution">Monthly Contribution</label>
+        <InputGroup>
+          <InputGroupAddon>£</InputGroupAddon>
+          <InputNumber
+            input-id="monthly_contribution"
+            v-model="monthlyContribution"
+            :min-fraction-digits="2"
+            :max-fraction-digits="2"
+          />
+        </InputGroup>
+        <Message size="small" severity="secondary" variant="simple">
+          Enter any additional contribution you'll invest into the investment on a monthly basis.
         </Message>
       </div>
 

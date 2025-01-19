@@ -5,6 +5,7 @@ export type Investment = {
   name: string
   initialValue: number
   purchaseFeePercentage: number
+  monthlyContribution: number
   annualGrowthRatePercentage: number
   monthlyGrowthRatePercentage: number
   growthRateType: InterestRateType

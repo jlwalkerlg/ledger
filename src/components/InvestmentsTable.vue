@@ -70,6 +70,12 @@ const onSaveInvestment = (investment: Investment) => {
       </template>
     </Column>
 
+    <Column header="Monthly Contribution">
+      <template #body="{ data: investment }: { data: Investment }">
+        <CurrencyText :value="investment.monthlyContribution" />
+      </template>
+    </Column>
+
     <Column header="Growth Rate">
       <template #body="{ data: investment }: { data: Investment }">
         <InterestRateText
