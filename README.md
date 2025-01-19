@@ -2,6 +2,7 @@
 
 ## Resources
 
+- [Financial Calculators](https://www.calculator.net/financial-calculator.html)
 - [Mortgage Repayment Calculator](https://tools.moneyhelper.org.uk/en/mortgage-calculator)
 - [Personal Loan Repayment Calculator](https://www.moneysupermarket.com/loans/calculator/)
 - [Investment Calculator](https://www.calculator.net/interest-calculator.html)
