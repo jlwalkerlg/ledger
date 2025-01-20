@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { NAMED_INTEREST_RATE_TYPES, type InterestRateType } from '@/models/interest-rates'
-import type { Investment } from '@/models/investments'
+import {
+  NAMED_PURCHASE_FEE_TYPES,
+  type Investment,
+  type PurchaseFeeType,
+} from '@/models/investments'
 import { getMonthlyInterestRatePercentage } from '@/utils/maths'
+import type { NamedValue } from '@/utils/types'
 import uniqueId from 'lodash-es/uniqueId'
 import {
   Button,
@@ -18,7 +23,9 @@ import { computed, ref, watch } from 'vue'
 const defaults = {
   name: 'House',
   initialValue: 144444,
+  purchaseFeeType: 'percentage' as PurchaseFeeType,
   purchaseFeePercentage: 5,
+  purchaseFeeAmount: 0,
   monthlyContribution: 0,
   annualGrowthRatePercentage: 3,
   growthRateType: 'effective' as InterestRateType,
@@ -38,9 +45,11 @@ const visible = defineModel<boolean>('visible')
 
 const name = ref(investment?.name ?? defaults.name)
 const initialValue = ref(investment?.initialValue ?? defaults.initialValue)
+const purchaseFeeType = ref(investment?.purchaseFeeType ?? defaults.purchaseFeeType)
 const purchaseFeePercentage = ref(
   investment?.purchaseFeePercentage ?? defaults.purchaseFeePercentage,
 )
+const purchaseFeeAmount = ref(investment?.purchaseFeeAmount ?? defaults.purchaseFeeAmount)
 const monthlyContribution = ref(investment?.monthlyContribution ?? defaults.monthlyContribution)
 const annualGrowthRatePercentage = ref(
   investment?.annualGrowthRatePercentage ?? defaults.annualGrowthRatePercentage,
@@ -51,8 +60,10 @@ const annualMaintenanceCostPercentage = ref(
 )
 const cashOutFeePercentage = ref(investment?.cashOutFeePercentage ?? defaults.cashOutFeePercentage)
 
-const initialPurchasePrice = computed(
-  () => initialValue.value * (1 + purchaseFeePercentage.value / 100),
+const initialPurchasePrice = computed(() =>
+  purchaseFeeType.value === 'percentage'
+    ? initialValue.value * (1 + purchaseFeePercentage.value / 100)
+    : initialValue.value + purchaseFeeAmount.value,
 )
 
 const monthlyGrowthRatePercentage = computed(() =>
@@ -72,7 +83,9 @@ const onSave = () => {
     id: investment?.id ?? uniqueId(),
     name: name.value,
     initialValue: initialValue.value,
+    purchaseFeeType: purchaseFeeType.value,
     purchaseFeePercentage: purchaseFeePercentage.value,
+    purchaseFeeAmount: purchaseFeeAmount.value,
     monthlyContribution: monthlyContribution.value,
     annualGrowthRatePercentage: annualGrowthRatePercentage.value,
     monthlyGrowthRatePercentage: monthlyGrowthRatePercentage.value,
@@ -90,6 +103,7 @@ watch(visible, (visible) => {
     initialValue.value = investment?.initialValue ?? defaults.initialValue
     purchaseFeePercentage.value =
       investment?.purchaseFeePercentage ?? defaults.purchaseFeePercentage
+    purchaseFeeAmount.value = investment?.purchaseFeeAmount ?? defaults.purchaseFeeAmount
     monthlyContribution.value = investment?.monthlyContribution ?? defaults.monthlyContribution
     annualGrowthRatePercentage.value =
       investment?.annualGrowthRatePercentage ?? defaults.annualGrowthRatePercentage
@@ -137,11 +151,29 @@ watch(visible, (visible) => {
       </div>
 
       <div class="space-y-2">
+        <label for="purchase_fee_type">Purchase Fee Type</label>
+        <InputGroup>
+          <Select
+            label-id="purchase_fee_type"
+            v-model="purchaseFeeType"
+            :options="NAMED_PURCHASE_FEE_TYPES"
+            :option-label="(option: NamedValue<PurchaseFeeType>) => option.name"
+            :option-value="(option: NamedValue<PurchaseFeeType>) => option.value"
+          />
+        </InputGroup>
+        <Message size="small" severity="secondary" variant="simple">
+          Select the type of growth rate.
+        </Message>
+      </div>
+
+      <div v-if="purchaseFeeType === 'percentage'" class="space-y-2">
         <label for="purchase_fee_percentage">Purchase Fee</label>
         <InputGroup>
           <InputNumber
             input-id="purchase_fee_percentage"
             v-model="purchaseFeePercentage"
+            :min="0"
+            :max="100"
             :max-fraction-digits="2"
           />
           <InputGroupAddon>%</InputGroupAddon>
@@ -152,19 +184,20 @@ watch(visible, (visible) => {
         </Message>
       </div>
 
-      <div class="space-y-2">
-        <label for="monthly_contribution">Monthly Contribution</label>
+      <div v-if="purchaseFeeType === 'flat'" class="space-y-2">
+        <label for="purchase_fee_flat">Purchase Fee</label>
         <InputGroup>
           <InputGroupAddon>£</InputGroupAddon>
           <InputNumber
-            input-id="monthly_contribution"
-            v-model="monthlyContribution"
+            input-id="purchase_fee_flat"
+            v-model="purchaseFeeAmount"
+            :min="0"
             :min-fraction-digits="2"
             :max-fraction-digits="2"
           />
         </InputGroup>
         <Message size="small" severity="secondary" variant="simple">
-          Enter any additional contribution you'll invest into the investment on a monthly basis.
+          Enter the fee associated with purchasing the investment.
         </Message>
       </div>
 
@@ -183,6 +216,22 @@ watch(visible, (visible) => {
         <Message size="small" severity="secondary" variant="simple">
           This is the total amount that it cost to buy the investment, including its initial value
           and any purchase fee.
+        </Message>
+      </div>
+
+      <div class="space-y-2">
+        <label for="monthly_contribution">Monthly Contribution</label>
+        <InputGroup>
+          <InputGroupAddon>£</InputGroupAddon>
+          <InputNumber
+            input-id="monthly_contribution"
+            v-model="monthlyContribution"
+            :min-fraction-digits="2"
+            :max-fraction-digits="2"
+          />
+        </InputGroup>
+        <Message size="small" severity="secondary" variant="simple">
+          Enter any additional contribution you'll invest into the investment on a monthly basis.
         </Message>
       </div>
 
@@ -209,8 +258,8 @@ watch(visible, (visible) => {
             label-id="growth_rate_type"
             v-model="growthRateType"
             :options="NAMED_INTEREST_RATE_TYPES"
-            :option-label="(option) => option.name"
-            :option-value="(option) => option.value"
+            :option-label="(option: NamedValue<InterestRateType>) => option.name"
+            :option-value="(option: NamedValue<InterestRateType>) => option.value"
           />
         </InputGroup>
         <Message size="small" severity="secondary" variant="simple">
