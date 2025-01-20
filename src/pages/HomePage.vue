@@ -32,45 +32,45 @@ import { computed, ref } from 'vue'
 const years = ref(5)
 
 const investments = ref<Investment[]>([
-  {
-    id: uniqueId(),
-    name: 'ISA',
-    initialValue: 20000,
-    purchaseFeePercentage: 0,
-    monthlyContribution: 400,
-    annualGrowthRatePercentage: 4.02,
-    growthRateType: 'nominal',
-    monthlyGrowthRatePercentage: getMonthlyInterestRatePercentage(4.02, 'nominal'),
-    annualMaintenanceCostPercentage: 0,
-    monthlyMaintenanceCostPercentage: getMonthlyInterestRatePercentage(0, 'effective'),
-    cashOutFeePercentage: 0,
-  },
   // {
   //   id: uniqueId(),
-  //   name: 'House',
-  //   initialValue: 100000,
-  //   purchaseFeePercentage: 5,
-  //   monthlyContribution: 0,
-  //   annualGrowthRatePercentage: 5,
-  //   growthRateType: 'effective',
-  //   monthlyGrowthRatePercentage: getMonthlyInterestRatePercentage(5, 'effective'),
-  //   annualMaintenanceCostPercentage: 1,
-  //   monthlyMaintenanceCostPercentage: getMonthlyInterestRatePercentage(1, 'effective'),
-  //   cashOutFeePercentage: 5,
+  //   name: 'ISA',
+  //   initialValue: 20000,
+  //   purchaseFeePercentage: 0,
+  //   monthlyContribution: 400,
+  //   annualGrowthRatePercentage: 4.02,
+  //   growthRateType: 'nominal',
+  //   monthlyGrowthRatePercentage: getMonthlyInterestRatePercentage(4.02, 'nominal'),
+  //   annualMaintenanceCostPercentage: 0,
+  //   monthlyMaintenanceCostPercentage: getMonthlyInterestRatePercentage(0, 'effective'),
+  //   cashOutFeePercentage: 0,
   // },
+  {
+    id: uniqueId(),
+    name: 'House',
+    initialValue: 100000,
+    purchaseFeePercentage: 5,
+    monthlyContribution: 0,
+    annualGrowthRatePercentage: 5,
+    growthRateType: 'effective',
+    monthlyGrowthRatePercentage: getMonthlyInterestRatePercentage(5, 'effective'),
+    annualMaintenanceCostPercentage: 1,
+    monthlyMaintenanceCostPercentage: getMonthlyInterestRatePercentage(1, 'effective'),
+    cashOutFeePercentage: 5,
+  },
 ])
 
 const loans = ref<Loan[]>([
-  // {
-  //   id: uniqueId(),
-  //   name: 'Mortgage',
-  //   amount: 80000,
-  //   annualInterestRatePercentage: 4.5,
-  //   interestRateType: 'nominal',
-  //   monthlyInterestRatePercentage: getMonthlyInterestRatePercentage(4.5, 'nominal'),
-  //   term: 15,
-  //   monthlyPayment: getMonthlyLoanPayment(80000, 4.5, 'nominal', 15),
-  // },
+  {
+    id: uniqueId(),
+    name: 'Mortgage',
+    amount: 80000,
+    annualInterestRatePercentage: 4.5,
+    interestRateType: 'nominal',
+    monthlyInterestRatePercentage: getMonthlyInterestRatePercentage(4.5, 'nominal'),
+    term: 15,
+    monthlyPayment: getMonthlyLoanPayment(80000, 4.5, 'nominal', 15),
+  },
   // {
   //   name: 'Loan',
   //   amount: 2000,
@@ -93,7 +93,7 @@ const totalInitialLoanAmount = computed(() =>
   loans.value.reduce((prev, curr) => prev + curr.amount, 0),
 )
 
-const intitialCashBalance = computed(
+const initialCashAvailable = computed(
   () => totalInvestmentsInitialPurchasePrice.value - totalInitialLoanAmount.value,
 )
 
@@ -122,9 +122,11 @@ const cols = ref([
       return [`${group}.debt`, `${group}.paid`]
     }),
   ),
-  'cash.available',
-  'cash.invested',
-  'cash.profit',
+  'summary.cash_out_value',
+  'summary.remaining_debt',
+  'summary.cash_available',
+  'summary.cash_invested',
+  'summary.cash_profit',
 ])
 
 const colspans = computed(() => {
@@ -227,11 +229,13 @@ const COL_OPTIONS = computed<ColGroup[]>(() => [
     }
   }),
   {
-    label: 'Cash',
+    label: 'Summary',
     items: [
-      { label: 'Available', value: 'cash.available', group: 'cash' },
-      { label: 'Invested', value: 'cash.invested', group: 'cash' },
-      { label: 'Profit', value: 'cash.profit', group: 'cash' },
+      { label: 'Cash Out Value', value: 'summary.cash_out_value', group: 'summary' },
+      { label: 'Remaining Debt', value: 'summary.remaining_debt', group: 'summary' },
+      { label: 'Cash Available', value: 'summary.cash_available', group: 'summary' },
+      { label: 'Cash Invested', value: 'summary.cash_invested', group: 'summary' },
+      { label: 'Cash Profit', value: 'summary.cash_profit', group: 'summary' },
     ],
   },
 ])
@@ -337,7 +341,7 @@ const breakdown = computed(() => {
       }
     }
 
-    const totalInvestmentsCashOutValue = investmentsBreakdown.reduce(
+    const cashOutValue = investmentsBreakdown.reduce(
       (prev, curr) => prev + curr.cashOutValue,
       0,
     )
@@ -347,22 +351,24 @@ const breakdown = computed(() => {
       0,
     )
 
-    const totalInvestmentsMaintenanceCashSpent = investmentsBreakdown.reduce(
+    const totalMaintenanceCashSpent = investmentsBreakdown.reduce(
       (prev, curr) => prev + curr.maintenanceCashSpent,
       0,
     )
 
-    const totalDebt = loansBreakdown.reduce((prev, curr) => prev + curr.debt, 0)
+    const remainingDebt = loansBreakdown.reduce((prev, curr) => prev + curr.debt, 0)
 
     const totalLoanPayments = loansBreakdown.reduce((prev, curr) => prev + curr.paid, 0)
 
-    const cashAvailable = totalInvestmentsCashOutValue - totalDebt
     const cashInvested =
-      totalInvestmentsInitialPurchasePrice.value -
-      totalInitialLoanAmount.value +
+      totalInvestmentsInitialPurchasePrice.value +
       totalInvestmentsContributions +
-      totalInvestmentsMaintenanceCashSpent +
-      totalLoanPayments
+      totalMaintenanceCashSpent +
+      totalLoanPayments -
+      totalInitialLoanAmount.value
+
+    const cashAvailable = cashOutValue - remainingDebt
+
     const cashProfit = cashAvailable - cashInvested
 
     return {
@@ -388,6 +394,8 @@ const breakdown = computed(() => {
         debt: toGbp(loan.debt),
         paid: toGbp(loan.paid),
       })),
+      cashOutValue: toGbp(cashOutValue),
+      remainingDebt: toGbp(remainingDebt),
       cashAvailable: toGbp(cashAvailable),
       cashInvested: toGbp(Math.max(0, cashInvested)),
       cashProfit: toGbp(cashProfit),
@@ -429,12 +437,12 @@ const rows = computed(() => {
       <AppPanel heading="Initial Values">
         <div class="space-y-4">
           <div class="space-y-2">
-            <label for="initial_cash_balance">Cash Balance</label>
+            <label for="initial_cash_available">Cash Available</label>
             <InputGroup>
               <InputGroupAddon>£</InputGroupAddon>
               <InputNumber
-                input-id="initial_cash_balance"
-                :model-value="intitialCashBalance"
+                input-id="initial_cash_available"
+                :model-value="initialCashAvailable"
                 disabled
                 :min-fraction-digits="2"
                 :max-fraction-digits="2"
@@ -512,34 +520,60 @@ const rows = computed(() => {
                   :colspan="colspans[`loan.${loan.id}`]"
                 />
               </template>
-              <template v-if="colspans['cash']">
-                <Column v-if="colspans['cash.available']" :rowspan="2">
+              <template v-if="colspans['summary']">
+                <Column v-if="colspans['summary.cash_out_value']" :rowspan="2">
+                  <template #header>
+                    <span class="p-datatable-column-title align-middle">Cash Out Value </span>
+                    <i
+                      class="pi pi-info-circle align-middle ml-1"
+                      v-tooltip="{
+                        value:
+                          'This is the total cash out value from all of your investments.',
+                        autoHide: false,
+                      }"
+                    ></i>
+                  </template>
+                </Column>
+                <Column v-if="colspans['summary.remaining_debt']" :rowspan="2">
+                  <template #header>
+                    <span class="p-datatable-column-title align-middle">Remaining Debt </span>
+                    <i
+                      class="pi pi-info-circle align-middle ml-1"
+                      v-tooltip="{
+                        value:
+                          'This is the total debt you still have to pay off.',
+                        autoHide: false,
+                      }"
+                    ></i>
+                  </template>
+                </Column>
+                <Column v-if="colspans['summary.cash_available']" :rowspan="2">
                   <template #header>
                     <span class="p-datatable-column-title align-middle">Cash Available </span>
                     <i
                       class="pi pi-info-circle align-middle ml-1"
                       v-tooltip="{
                         value:
-                          'This is how much cash you have available to you if you cash out on all your properties and pay off all of your debts.',
+                          'This is how much cash you\'d have if you cashed out on all of your investments and payed off all of your remaining debt.',
                         autoHide: false,
                       }"
                     ></i>
                   </template>
                 </Column>
-                <Column v-if="colspans['cash.invested']" :rowspan="2">
+                <Column v-if="colspans['summary.cash_invested']" :rowspan="2">
                   <template #header>
                     <span class="p-datatable-column-title align-middle">Cash Invested </span>
                     <i
                       class="pi pi-info-circle align-middle ml-1"
                       v-tooltip="{
                         value:
-                          'This is how much you have invested in cash so far from investment purchase fees, deposits, and maintenance costs.',
+                          'This is how much cash you\'ve invested so far out of your own pocket, including deposits, purchase fees, monthly contributions, maintenance fees, and monthly loan payments.',
                         autoHide: false,
                       }"
                     ></i>
                   </template>
                 </Column>
-                <Column v-if="colspans['cash.profit']" :rowspan="2">
+                <Column v-if="colspans['summary.cash_profit']" :rowspan="2">
                   <template #header>
                     <span class="p-datatable-column-title align-middle">Cash Profit </span>
                     <i
@@ -654,10 +688,12 @@ const rows = computed(() => {
             </template>
           </template>
 
-          <template v-if="colspans['cash']">
-            <Column v-if="colspans['cash.available']" :field="(row) => row.cashAvailable" />
-            <Column v-if="colspans['cash.invested']" :field="(row) => row.cashInvested" />
-            <Column v-if="colspans['cash.profit']" :field="(row) => row.cashProfit" />
+          <template v-if="colspans['summary']">
+            <Column v-if="colspans['summary.cash_out_value']" :field="(row) => row.cashOutValue" />
+            <Column v-if="colspans['summary.remaining_debt']" :field="(row) => row.remainingDebt" />
+            <Column v-if="colspans['summary.cash_available']" :field="(row) => row.cashAvailable" />
+            <Column v-if="colspans['summary.cash_invested']" :field="(row) => row.cashInvested" />
+            <Column v-if="colspans['summary.cash_profit']" :field="(row) => row.cashProfit" />
           </template>
         </DataTable>
       </AppPanel>
