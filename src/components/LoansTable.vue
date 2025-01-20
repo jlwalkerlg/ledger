@@ -7,6 +7,11 @@ import LoanModal from './LoanModal.vue'
 import InterestRateText from './InterestRateText.vue'
 import type { Loan } from '@/models/loans'
 
+const emit = defineEmits<{
+  (e: 'add-loan', loan: Loan): void
+  (e: 'remove-loan', loan: Loan): void
+}>()
+
 const loans = defineModel<Loan[]>({
   required: true,
 })
@@ -27,6 +32,7 @@ const onEditLoan = (loan: Loan) => {
 const onRemoveLoan = (loan: Loan) => {
   loans.value = loans.value.filter((l) => l.id !== loan.id)
   editLoan.value = undefined
+  emit('remove-loan', loan)
 }
 
 const onSaveLoan = (loan: Loan) => {
@@ -34,6 +40,7 @@ const onSaveLoan = (loan: Loan) => {
     loans.value = loans.value.map((l) => (l.id === editLoan.value?.id ? loan : l))
   } else {
     loans.value = [...loans.value, loan]
+    emit('add-loan', loan)
   }
   showLoanModal.value = false
 }

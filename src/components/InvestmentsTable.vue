@@ -7,6 +7,11 @@ import PercentageText from './PercentageText.vue'
 import type { Investment } from '@/models/investments'
 import InterestRateText from './InterestRateText.vue'
 
+const emit = defineEmits<{
+  (e: 'add-investment', investment: Investment): void
+  (e: 'remove-investment', investment: Investment): void
+}>()
+
 const investments = defineModel<Investment[]>({
   required: true,
 })
@@ -26,6 +31,7 @@ const onEditInvestment = (investment: Investment) => {
 
 const onRemoveInvestment = (investment: Investment) => {
   investments.value = investments.value.filter((i) => i.id !== investment.id)
+  emit('remove-investment', investment)
   editInvestment.value = undefined
 }
 
@@ -36,6 +42,7 @@ const onSaveInvestment = (investment: Investment) => {
     )
   } else {
     investments.value = [...investments.value, investment]
+    emit('add-investment', investment)
   }
   showInvestmentModal.value = false
 }

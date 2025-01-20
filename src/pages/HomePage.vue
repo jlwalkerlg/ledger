@@ -97,31 +97,31 @@ const initialCashAvailable = computed(
   () => totalInvestmentsInitialPurchasePrice.value - totalInitialLoanAmount.value,
 )
 
+const getDefaultInvestmentSelectedCols = (investment: Investment) => {
+  const group = `investment.${investment.id}`
+
+  return [
+    `${group}.value`,
+    // `${group}.initial_purchase_fee`,
+    // `${group}.initial_purchase_price`,
+    `${group}.total_contributions`,
+    // `${group}.maintenance_cost`,
+    `${group}.maintenance_cash_spent`,
+    // `${group}.cash_out_fee`,
+    `${group}.cash_out_value`,
+  ]
+}
+
+const getDefaultLoanSelectedCols = (loan: Loan) => {
+  const group = `loan.${loan.id}`
+
+  return [`${group}.debt`, `${group}.paid`]
+}
+
 const cols = ref([
   'time.years',
-  ...flatten(
-    investments.value.map((investment) => {
-      const group = `investment.${investment.id}`
-
-      return [
-        `${group}.value`,
-        // `${group}.initial_purchase_fee`,
-        // `${group}.initial_purchase_price`,
-        `${group}.total_contributions`,
-        // `${group}.maintenance_cost`,
-        `${group}.maintenance_cash_spent`,
-        // `${group}.cash_out_fee`,
-        `${group}.cash_out_value`,
-      ]
-    }),
-  ),
-  ...flatten(
-    loans.value.map((loan) => {
-      const group = `loan.${loan.id}`
-
-      return [`${group}.debt`, `${group}.paid`]
-    }),
-  ),
+  ...flatten(investments.value.map(getDefaultInvestmentSelectedCols)),
+  ...flatten(loans.value.map(getDefaultLoanSelectedCols)),
   'summary.cash_out_value',
   'summary.remaining_debt',
   'summary.cash_available',
@@ -341,10 +341,7 @@ const breakdown = computed(() => {
       }
     }
 
-    const cashOutValue = investmentsBreakdown.reduce(
-      (prev, curr) => prev + curr.cashOutValue,
-      0,
-    )
+    const cashOutValue = investmentsBreakdown.reduce((prev, curr) => prev + curr.cashOutValue, 0)
 
     const totalInvestmentsContributions = investmentsBreakdown.reduce(
       (prev, curr) => prev + curr.totalContributions,
@@ -410,6 +407,28 @@ const rows = computed(() => {
 
   return breakdown.value
 })
+
+const onAddInvestment = (investment: Investment) => {
+  cols.value = [...cols.value, ...getDefaultInvestmentSelectedCols(investment)]
+}
+
+const onRemoveInvestment = (investment: Investment) => {
+  cols.value = cols.value.filter((col) => {
+    const group = col.slice(0, col.lastIndexOf('.'))
+    return group !== `investment.${investment.id}`
+  })
+}
+
+const onAddLoan = (loan: Loan) => {
+  cols.value = [...cols.value, ...getDefaultLoanSelectedCols(loan)]
+}
+
+const onRemoveLoan = (loan: Loan) => {
+  cols.value = cols.value.filter((col) => {
+    const group = col.slice(0, col.lastIndexOf('.'))
+    return group !== `loan.${loan.id}`
+  })
+}
 </script>
 
 <template>
@@ -430,9 +449,13 @@ const rows = computed(() => {
         </div>
       </AppPanel>
 
-      <InvestmentsTable v-model="investments" />
+      <InvestmentsTable
+        v-model="investments"
+        @add-investment="onAddInvestment"
+        @remove-investment="onRemoveInvestment"
+      />
 
-      <LoansTable v-model="loans" />
+      <LoansTable v-model="loans" @add-loan="onAddLoan" @remove-loan="onRemoveLoan" />
 
       <AppPanel heading="Initial Values">
         <div class="space-y-4">
@@ -472,6 +495,7 @@ const rows = computed(() => {
               :option-group-label="(group: ColGroup) => group.label"
               :option-group-children="(group: ColGroup) => group.items"
               :show-toggle-all="false"
+              placeholder="Select columns"
               class="w-full md:w-80"
             >
               <template #value="{ value }">{{ value.length }} selected</template>
@@ -527,8 +551,7 @@ const rows = computed(() => {
                     <i
                       class="pi pi-info-circle align-middle ml-1"
                       v-tooltip="{
-                        value:
-                          'This is the total cash out value from all of your investments.',
+                        value: 'This is the total cash out value from all of your investments.',
                         autoHide: false,
                       }"
                     ></i>
@@ -540,8 +563,7 @@ const rows = computed(() => {
                     <i
                       class="pi pi-info-circle align-middle ml-1"
                       v-tooltip="{
-                        value:
-                          'This is the total debt you still have to pay off.',
+                        value: 'This is the total debt you still have to pay off.',
                         autoHide: false,
                       }"
                     ></i>
@@ -693,7 +715,11 @@ const rows = computed(() => {
             <Column v-if="colspans['summary.remaining_debt']" :field="(row) => row.remainingDebt" />
             <Column v-if="colspans['summary.cash_available']" :field="(row) => row.cashAvailable" />
             <Column v-if="colspans['summary.cash_invested']" :field="(row) => row.cashInvested" />
-            <Column v-if="colspans['summary.cash_profit']" :field="(row) => row.cashProfit" />
+            <Column
+              v-if="colspans['summary.cash_profit']"
+              :field="(row) => row.cashProfit"
+              class="whitespace-nowrap"
+            />
           </template>
         </DataTable>
       </AppPanel>
