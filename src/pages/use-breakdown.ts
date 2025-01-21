@@ -2,6 +2,7 @@ import type { Investment } from '@/models/investments'
 import type { Loan } from '@/models/loans'
 import { toGbp } from '@/utils/formatters'
 import { addPercentage, percentageOf } from '@/utils/maths'
+import sumBy from 'lodash-es/sumBy'
 import { computed, type Ref } from 'vue'
 
 type InvestmentBreakdownItem = {
@@ -12,6 +13,7 @@ type InvestmentBreakdownItem = {
   initialPurchasePrice: number
   monthlyContribution: number
   totalContributions: number
+  interestAccrued: number
   monthlyGrowthRatePercentage: number
   maintenanceCashSpent: number
   monthlyMaintenanceCostPercentage: number
@@ -28,6 +30,7 @@ export type FormattedInvestmentBreakdownItem = {
   initialPurchaseFee: string
   initialPurchasePrice: string
   totalContributions: string
+  interestAccrued: string
   monthlyMaintenanceCost: string
   maintenanceCashSpent: string
   cashOutFee: string
@@ -50,6 +53,7 @@ const getInvestmentBreakdownItem = (investment: Investment): InvestmentBreakdown
     initialPurchasePrice: investment.initialValue + initialPurchaseFee,
     monthlyContribution: investment.monthlyContribution,
     totalContributions: 0,
+    interestAccrued: 0,
     monthlyGrowthRatePercentage: investment.monthlyGrowthRatePercentage,
     maintenanceCashSpent: 0,
     monthlyMaintenanceCostPercentage: investment.monthlyMaintenanceCostPercentage,
@@ -67,7 +71,9 @@ const advanceInvestment = (investment: InvestmentBreakdownItem) => {
   investment.totalContributions += investment.monthlyContribution
   investment.value += investment.monthlyContribution
   investment.maintenanceCashSpent += investment.monthlyMaintenanceCost
-  investment.value = addPercentage(investment.value, investment.monthlyGrowthRatePercentage)
+  const interest = percentageOf(investment.value, investment.monthlyGrowthRatePercentage)
+  investment.value += interest
+  investment.interestAccrued += interest
   investment.monthlyMaintenanceCost = percentageOf(
     investment.value,
     investment.monthlyMaintenanceCostPercentage,
@@ -86,6 +92,7 @@ const formatInvestment = (
     initialPurchaseFee: toGbp(investment.initialPurchaseFee),
     initialPurchasePrice: toGbp(investment.initialPurchasePrice),
     totalContributions: toGbp(investment.totalContributions),
+    interestAccrued: toGbp(investment.interestAccrued),
     monthlyMaintenanceCost: toGbp(investment.monthlyMaintenanceCost),
     maintenanceCashSpent: toGbp(investment.maintenanceCashSpent),
     cashOutFee: toGbp(investment.cashOutFee),
@@ -100,6 +107,7 @@ type LoanBreakdownItem = {
   paid: number
   annualInterestRatePercentage: number
   monthlyInterestRatePercentage: number
+  interestAccrued: number
   term: number
   monthlyPayment: number
 }
@@ -109,6 +117,7 @@ export type FormattedLoanBreakdownItem = {
   name: string
   debt: string
   paid: string
+  interestAccrued: string
 }
 
 const getLoanBreakdownItem = (loan: Loan): LoanBreakdownItem => {
@@ -119,13 +128,16 @@ const getLoanBreakdownItem = (loan: Loan): LoanBreakdownItem => {
     paid: 0,
     annualInterestRatePercentage: loan.annualInterestRatePercentage,
     monthlyInterestRatePercentage: loan.monthlyInterestRatePercentage,
+    interestAccrued: 0,
     term: loan.term,
     monthlyPayment: loan.monthlyPayment,
   }
 }
 
 const advanceLoan = (loan: LoanBreakdownItem) => {
-  loan.debt *= 1 + loan.monthlyInterestRatePercentage / 100
+  const interest = (loan.debt * loan.monthlyInterestRatePercentage) / 100
+  loan.debt += interest
+  loan.interestAccrued += interest
 
   const loanPayment = Math.min(loan.debt, loan.monthlyPayment)
   loan.debt -= loanPayment
@@ -138,6 +150,7 @@ const formatLoan = (loan: LoanBreakdownItem): FormattedLoanBreakdownItem => {
     name: loan.name,
     debt: toGbp(loan.debt),
     paid: toGbp(loan.paid),
+    interestAccrued: toGbp(loan.interestAccrued),
   }
 }
 
@@ -160,24 +173,6 @@ export const useBreakdown = (
   investments: Ref<Investment[]>,
   loans: Ref<Loan[]>,
 ) => {
-  const totalInvestmentsInitialPurchasePrice = computed(() =>
-    investments.value.reduce(
-      (total, investment) =>
-        total + investment.purchaseFeeType === 'percentage'
-          ? addPercentage(investment.initialValue, investment.purchaseFeePercentage)
-          : investment.initialValue + investment.purchaseFeeAmount,
-      0,
-    ),
-  )
-
-  const totalInitialLoanAmount = computed(() =>
-    loans.value.reduce((prev, curr) => prev + curr.amount, 0),
-  )
-
-  const initialCashAvailable = computed(() =>
-    Math.max(0, totalInvestmentsInitialPurchasePrice.value - totalInitialLoanAmount.value),
-  )
-
   const items = computed<FormattedBreakdownItem[]>(() => {
     const investmentItems = investments.value.map(getInvestmentBreakdownItem)
     const loanItems = loans.value.map(getLoanBreakdownItem)
@@ -200,35 +195,6 @@ export const useBreakdown = (
         }
       }
 
-      const cashOutValue = investmentItems.reduce((prev, curr) => prev + curr.cashOutValue, 0)
-
-      const totalInvestmentsContributions = investmentItems.reduce(
-        (prev, curr) => prev + curr.totalContributions,
-        0,
-      )
-
-      const totalMaintenanceCashSpent = investmentItems.reduce(
-        (prev, curr) => prev + curr.maintenanceCashSpent,
-        0,
-      )
-
-      const remainingDebt = loanItems.reduce((prev, curr) => prev + curr.debt, 0)
-
-      const totalLoanPayments = loanItems.reduce((prev, curr) => prev + curr.paid, 0)
-
-      const cashInvested = Math.max(
-        0,
-        totalInvestmentsInitialPurchasePrice.value +
-          totalInvestmentsContributions +
-          totalMaintenanceCashSpent +
-          totalLoanPayments -
-          totalInitialLoanAmount.value,
-      )
-
-      const cashAvailable = cashOutValue - remainingDebt
-
-      const cashProfit = cashAvailable - cashInvested
-
       return {
         months,
         years,
@@ -236,17 +202,17 @@ export const useBreakdown = (
         year,
         investments: investmentItems.map(formatInvestment),
         loans: loanItems.map(formatLoan),
-        cashOutValue: toGbp(cashOutValue),
-        remainingDebt: toGbp(remainingDebt),
-        cashAvailable: toGbp(cashAvailable),
-        cashInvested: toGbp(cashInvested),
-        cashProfit: toGbp(cashProfit),
+        cashOutValue: toGbp(0),
+        remainingDebt: toGbp(0),
+        cashAvailable: toGbp(0),
+        cashInvested: toGbp(0),
+        cashProfit: toGbp(0),
       }
     })
   })
 
   return {
-    initialCashAvailable,
+    initialCashAvailable: 0,
     items,
   }
 }

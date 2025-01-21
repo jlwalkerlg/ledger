@@ -22,6 +22,7 @@ const getDefaultInvestmentColumns = (investment: Investment) => {
     // `${group}.initial_purchase_fee`,
     // `${group}.initial_purchase_price`,
     `${group}.total_contributions`,
+    `${group}.interest_accrued`,
     // `${group}.maintenance_cost`,
     `${group}.maintenance_cash_spent`,
     // `${group}.cash_out_fee`,
@@ -32,7 +33,7 @@ const getDefaultInvestmentColumns = (investment: Investment) => {
 const getDefaultLoanColumns = (loan: Loan) => {
   const group = `loan.${loan.id}`
 
-  return [`${group}.debt`, `${group}.paid`]
+  return [`${group}.debt`, `${group}.paid`, `${group}.interest_accrued`]
 }
 
 export const useColumns = (investments: Ref<Investment[]>, loans: Ref<Loan[]>) => {
@@ -40,11 +41,11 @@ export const useColumns = (investments: Ref<Investment[]>, loans: Ref<Loan[]>) =
     'time.years',
     ...flatten(investments.value.map(getDefaultInvestmentColumns)),
     ...flatten(loans.value.map(getDefaultLoanColumns)),
-    'summary.cash_out_value',
-    'summary.remaining_debt',
-    'summary.cash_available',
-    'summary.cash_invested',
-    'summary.cash_profit',
+    // 'summary.cash_out_value',
+    // 'summary.remaining_debt',
+    // 'summary.cash_available',
+    // 'summary.cash_invested',
+    // 'summary.cash_profit',
   ])
 
   const columnCounts = computed(() => {
@@ -98,6 +99,11 @@ export const useColumns = (investments: Ref<Investment[]>, loans: Ref<Loan[]>) =
             group,
           },
           {
+            label: 'Interest Accrued',
+            value: `${group}.interest_accrued`,
+            group,
+          },
+          {
             label: 'Maintenance Cost',
             value: `${group}.maintenance_cost`,
             group,
@@ -130,6 +136,11 @@ export const useColumns = (investments: Ref<Investment[]>, loans: Ref<Loan[]>) =
           {
             label: 'Paid',
             value: `${group}.paid`,
+            group,
+          },
+          {
+            label: 'Interest Accrued',
+            value: `${group}.interest_accrued`,
             group,
           },
         ],

@@ -22,12 +22,10 @@ defineProps<{
   >
     <ColumnGroup type="header">
       <Row>
-        <template v-if="columnCounts['time']">
-          <Column v-if="columnCounts['time.months']" header="Months" :rowspan="2" />
-          <Column v-if="columnCounts['time.years']" header="Years" :rowspan="2" />
-          <Column v-if="columnCounts['time.month']" header="Month" :rowspan="2" />
-          <Column v-if="columnCounts['time.year']" header="Year" :rowspan="2" />
-        </template>
+        <Column v-if="columnCounts['time.months']" header="Months" :rowspan="2" />
+        <Column v-if="columnCounts['time.years']" header="Years" :rowspan="2" />
+        <Column v-if="columnCounts['time.month']" header="Month" :rowspan="2" />
+        <Column v-if="columnCounts['time.year']" header="Year" :rowspan="2" />
         <template v-for="investment of investments" :key="investment.id">
           <Column
             v-if="columnCounts[`investment.${investment.id}`]"
@@ -42,71 +40,69 @@ defineProps<{
             :colspan="columnCounts[`loan.${loan.id}`]"
           />
         </template>
-        <template v-if="columnCounts['summary']">
-          <Column v-if="columnCounts['summary.cash_out_value']" :rowspan="2">
-            <template #header>
-              <span class="p-datatable-column-title align-middle">Cash Out Value </span>
-              <i
-                class="pi pi-info-circle align-middle ml-1"
-                v-tooltip="{
-                  value: 'This is the total cash out value from all of your investments.',
-                  autoHide: false,
-                }"
-              ></i>
-            </template>
-          </Column>
-          <Column v-if="columnCounts['summary.remaining_debt']" :rowspan="2">
-            <template #header>
-              <span class="p-datatable-column-title align-middle">Remaining Debt </span>
-              <i
-                class="pi pi-info-circle align-middle ml-1"
-                v-tooltip="{
-                  value: 'This is the total debt you still have to pay off.',
-                  autoHide: false,
-                }"
-              ></i>
-            </template>
-          </Column>
-          <Column v-if="columnCounts['summary.cash_available']" :rowspan="2">
-            <template #header>
-              <span class="p-datatable-column-title align-middle">Cash Available </span>
-              <i
-                class="pi pi-info-circle align-middle ml-1"
-                v-tooltip="{
-                  value:
-                    'This is how much cash you\'d have if you cashed out on all of your investments and payed off all of your remaining debt.',
-                  autoHide: false,
-                }"
-              ></i>
-            </template>
-          </Column>
-          <Column v-if="columnCounts['summary.cash_invested']" :rowspan="2">
-            <template #header>
-              <span class="p-datatable-column-title align-middle">Cash Invested </span>
-              <i
-                class="pi pi-info-circle align-middle ml-1"
-                v-tooltip="{
-                  value:
-                    'This is how much cash you\'ve invested so far out of your own pocket, including deposits, purchase fees, monthly contributions, maintenance fees, and monthly loan payments.',
-                  autoHide: false,
-                }"
-              ></i>
-            </template>
-          </Column>
-          <Column v-if="columnCounts['summary.cash_profit']" :rowspan="2">
-            <template #header>
-              <span class="p-datatable-column-title align-middle">Cash Profit </span>
-              <i
-                class="pi pi-info-circle align-middle ml-1"
-                v-tooltip="{
-                  value:
-                    'This is how much better off you\'d be if you cashed out on all your properties and paid off all of your debts versus never making any investments.',
-                  autoHide: false,
-                }"
-              ></i>
-            </template>
-          </Column>
-        </template>
+        <Column v-if="columnCounts['summary.cash_invested']" :rowspan="2">
+          <template #header>
+            <span class="p-datatable-column-title align-middle">Cash Invested </span>
+            <i
+              class="pi pi-info-circle align-middle ml-1"
+              v-tooltip="{
+                value:
+                  'This is how much cash you\'ve invested so far out of your own pocket, including deposits, purchase fees, monthly contributions, maintenance fees, and monthly loan payments.',
+                autoHide: false,
+              }"
+            ></i>
+          </template>
+        </Column>
+        <Column v-if="columnCounts['summary.cash_out_value']" :rowspan="2">
+          <template #header>
+            <span class="p-datatable-column-title align-middle">Cash Out Value </span>
+            <i
+              class="pi pi-info-circle align-middle ml-1"
+              v-tooltip="{
+                value: 'This is the total cash out value from all of your investments.',
+                autoHide: false,
+              }"
+            ></i>
+          </template>
+        </Column>
+        <Column v-if="columnCounts['summary.remaining_debt']" :rowspan="2">
+          <template #header>
+            <span class="p-datatable-column-title align-middle">Remaining Debt </span>
+            <i
+              class="pi pi-info-circle align-middle ml-1"
+              v-tooltip="{
+                value: 'This is the total debt you still have to pay off.',
+                autoHide: false,
+              }"
+            ></i>
+          </template>
+        </Column>
+        <Column v-if="columnCounts['summary.cash_available']" :rowspan="2">
+          <template #header>
+            <span class="p-datatable-column-title align-middle">Cash Available </span>
+            <i
+              class="pi pi-info-circle align-middle ml-1"
+              v-tooltip="{
+                value:
+                  'This is how much cash you\'d have if you cashed out on all of your investments and payed off all of your remaining debt.',
+                autoHide: false,
+              }"
+            ></i>
+          </template>
+        </Column>
+        <Column v-if="columnCounts['summary.cash_profit']" :rowspan="2">
+          <template #header>
+            <span class="p-datatable-column-title align-middle">Cash Profit </span>
+            <i
+              class="pi pi-info-circle align-middle ml-1"
+              v-tooltip="{
+                value:
+                  'This is how much better off you\'d be if you cashed out on all your properties and paid off all of your debts versus never making any investments.',
+                autoHide: false,
+              }"
+            ></i>
+          </template>
+        </Column>
       </Row>
       <Row>
         <template v-for="investment of investments" :key="investment.id">
@@ -123,6 +119,10 @@ defineProps<{
             <Column
               v-if="columnCounts[`investment.${investment.id}.total_contributions`]"
               header="Total Contributions"
+            />
+            <Column
+              v-if="columnCounts[`investment.${investment.id}.interest_accrued`]"
+              header="Interest Accrued"
             />
             <Column
               v-if="columnCounts[`investment.${investment.id}.maintenance_cost`]"
@@ -146,17 +146,19 @@ defineProps<{
           <template v-if="columnCounts[`loan.${loan.id}`]">
             <Column v-if="columnCounts[`loan.${loan.id}.debt`]" header="Debt" />
             <Column v-if="columnCounts[`loan.${loan.id}.paid`]" header="Paid" />
+            <Column
+              v-if="columnCounts[`loan.${loan.id}.interest_accrued`]"
+              header="Interest Accrued"
+            />
           </template>
         </template>
       </Row>
     </ColumnGroup>
 
-    <template v-if="columnCounts['time']">
-      <Column v-if="columnCounts['time.months']" :field="(row) => row.months" />
-      <Column v-if="columnCounts['time.years']" :field="(row) => row.years" />
-      <Column v-if="columnCounts['time.month']" :field="(row) => row.month" />
-      <Column v-if="columnCounts['time.year']" :field="(row) => row.year" />
-    </template>
+    <Column v-if="columnCounts['time.months']" :field="(row) => row.months" />
+    <Column v-if="columnCounts['time.years']" :field="(row) => row.years" />
+    <Column v-if="columnCounts['time.month']" :field="(row) => row.month" />
+    <Column v-if="columnCounts['time.year']" :field="(row) => row.year" />
 
     <template v-for="(investment, index) of investments" :key="investment.id">
       <template v-if="columnCounts[`investment.${investment.id}`]">
@@ -175,6 +177,10 @@ defineProps<{
         <Column
           v-if="columnCounts[`investment.${investment.id}.total_contributions`]"
           :field="(row) => row.investments[index].totalContributions"
+        />
+        <Column
+          v-if="columnCounts[`investment.${investment.id}.interest_accrued`]"
+          :field="(row) => row.investments[index].interestAccrued"
         />
         <Column
           v-if="columnCounts[`investment.${investment.id}.maintenance_cost`]"
@@ -205,19 +211,21 @@ defineProps<{
           v-if="columnCounts[`loan.${loan.id}.paid`]"
           :field="(row) => row.loans[index].paid"
         />
+        <Column
+          v-if="columnCounts[`loan.${loan.id}.interest_accrued`]"
+          :field="(row) => row.loans[index].interestAccrued"
+        />
       </template>
     </template>
 
-    <template v-if="columnCounts['summary']">
-      <Column v-if="columnCounts['summary.cash_out_value']" :field="(row) => row.cashOutValue" />
-      <Column v-if="columnCounts['summary.remaining_debt']" :field="(row) => row.remainingDebt" />
-      <Column v-if="columnCounts['summary.cash_available']" :field="(row) => row.cashAvailable" />
-      <Column v-if="columnCounts['summary.cash_invested']" :field="(row) => row.cashInvested" />
-      <Column
-        v-if="columnCounts['summary.cash_profit']"
-        :field="(row) => row.cashProfit"
-        class="whitespace-nowrap"
-      />
-    </template>
+    <Column v-if="columnCounts['summary.cash_invested']" :field="(row) => row.cashInvested" />
+    <Column v-if="columnCounts['summary.cash_out_value']" :field="(row) => row.cashOutValue" />
+    <Column v-if="columnCounts['summary.remaining_debt']" :field="(row) => row.remainingDebt" />
+    <Column v-if="columnCounts['summary.cash_available']" :field="(row) => row.cashAvailable" />
+    <Column
+      v-if="columnCounts['summary.cash_profit']"
+      :field="(row) => row.cashProfit"
+      class="whitespace-nowrap"
+    />
   </DataTable>
 </template>
