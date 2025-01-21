@@ -96,7 +96,12 @@ watch(visible, (visible) => {
       <div class="space-y-2">
         <label for="loan_name">Name</label>
         <InputGroup>
-          <InputText id="loan_name" v-model="name" placeholder="Mortgage" />
+          <InputText
+            id="loan_name"
+            v-model="name"
+            placeholder="Mortgage"
+            :pt="{ root: { autofocus: true } }"
+          />
         </InputGroup>
         <Message size="small" severity="secondary" variant="simple">
           Enter a name for the loan.
