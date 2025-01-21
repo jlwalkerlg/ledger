@@ -174,8 +174,8 @@ export const useBreakdown = (
     loans.value.reduce((prev, curr) => prev + curr.amount, 0),
   )
 
-  const initialCashAvailable = computed(
-    () => totalInvestmentsInitialPurchasePrice.value - totalInitialLoanAmount.value,
+  const initialCashAvailable = computed(() =>
+    Math.max(0, totalInvestmentsInitialPurchasePrice.value - totalInitialLoanAmount.value),
   )
 
   const items = computed<FormattedBreakdownItem[]>(() => {
