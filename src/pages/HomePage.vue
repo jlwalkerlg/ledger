@@ -12,7 +12,6 @@ import {
   getMonthlyLoanPayment,
   percentageOf,
 } from '@/utils/maths'
-import flatten from 'lodash-es/flatten'
 import uniqueId from 'lodash-es/uniqueId'
 import {
   Column,
@@ -28,6 +27,8 @@ import {
   Select,
 } from 'primevue'
 import { computed, ref } from 'vue'
+import { useColumns, type ColGroup, type ColOption } from './use-columns'
+import { useGroupBy } from './use-group-by'
 
 const years = ref(5)
 
@@ -104,155 +105,17 @@ const initialCashAvailable = computed(
   () => totalInvestmentsInitialPurchasePrice.value - totalInitialLoanAmount.value,
 )
 
-const getDefaultInvestmentSelectedCols = (investment: Investment) => {
-  const group = `investment.${investment.id}`
+const {
+  columns,
+  columnCounts,
+  columnOptions,
+  addInvestmentColumns,
+  removeInvestmentColumns,
+  addLoanColumns,
+  removeLoanColumns,
+} = useColumns(investments, loans)
 
-  return [
-    `${group}.value`,
-    // `${group}.initial_purchase_fee`,
-    // `${group}.initial_purchase_price`,
-    `${group}.total_contributions`,
-    // `${group}.maintenance_cost`,
-    `${group}.maintenance_cash_spent`,
-    // `${group}.cash_out_fee`,
-    `${group}.cash_out_value`,
-  ]
-}
-
-const getDefaultLoanSelectedCols = (loan: Loan) => {
-  const group = `loan.${loan.id}`
-
-  return [`${group}.debt`, `${group}.paid`]
-}
-
-const cols = ref([
-  'time.years',
-  ...flatten(investments.value.map(getDefaultInvestmentSelectedCols)),
-  ...flatten(loans.value.map(getDefaultLoanSelectedCols)),
-  'summary.cash_out_value',
-  'summary.remaining_debt',
-  'summary.cash_available',
-  'summary.cash_invested',
-  'summary.cash_profit',
-])
-
-const colspans = computed(() => {
-  const result: Record<string, number> = {}
-
-  for (const col of cols.value) {
-    const group = col.slice(0, col.lastIndexOf('.'))
-
-    if (!result[group]) {
-      result[group] = 1
-    } else {
-      result[group]++
-    }
-
-    result[col] = 1
-  }
-
-  return result
-})
-
-type ColGroup = {
-  label: string
-  items: ColOption[]
-}
-
-type ColOption = {
-  label: string
-  value: string
-  group: string
-}
-
-const COL_OPTIONS = computed<ColGroup[]>(() => [
-  {
-    label: 'Time',
-    items: [
-      { label: 'Months', value: 'time.months', group: 'time' },
-      { label: 'Years', value: 'time.years', group: 'time' },
-      { label: 'Month', value: 'time.month', group: 'time' },
-      { label: 'Year', value: 'time.year', group: 'time' },
-    ],
-  },
-  ...investments.value.map((investment) => {
-    const group = `investment.${investment.id}`
-
-    return {
-      label: investment.name,
-      items: [
-        { label: 'Value', value: `${group}.value`, group },
-        {
-          label: 'Initial Purchase Fee',
-          value: `${group}.initial_purchase_fee`,
-          group,
-        },
-        {
-          label: 'Initial Purchase Price',
-          value: `${group}.initial_purchase_price`,
-          group,
-        },
-        {
-          label: 'Total Contributions',
-          value: `${group}.total_contributions`,
-          group,
-        },
-        {
-          label: 'Maintenance Cost',
-          value: `${group}.maintenance_cost`,
-          group,
-        },
-        {
-          label: 'Maintenance Cash Spent',
-          value: `${group}.maintenance_cash_spent`,
-          group,
-        },
-        {
-          label: 'Cash Out Fee',
-          value: `${group}.cash_out_fee`,
-          group,
-        },
-        {
-          label: 'Cash Out Value',
-          value: `${group}.cash_out_value`,
-          group,
-        },
-      ],
-    }
-  }),
-  ...loans.value.map((loan) => {
-    const group = `loan.${loan.id}`
-
-    return {
-      label: loan.name,
-      items: [
-        { label: 'Debt', value: `${group}.debt`, group },
-        {
-          label: 'Paid',
-          value: `${group}.paid`,
-          group,
-        },
-      ],
-    }
-  }),
-  {
-    label: 'Summary',
-    items: [
-      { label: 'Cash Out Value', value: 'summary.cash_out_value', group: 'summary' },
-      { label: 'Remaining Debt', value: 'summary.remaining_debt', group: 'summary' },
-      { label: 'Cash Available', value: 'summary.cash_available', group: 'summary' },
-      { label: 'Cash Invested', value: 'summary.cash_invested', group: 'summary' },
-      { label: 'Cash Profit', value: 'summary.cash_profit', group: 'summary' },
-    ],
-  },
-])
-
-const groupBy = ref('years')
-
-const GROUP_BY_OPTIONS = [
-  { name: 'Months', value: 'months' },
-  { name: 'Years', value: 'years' },
-]
+const { value: groupBy, options: groupByOptions } = useGroupBy()
 
 const breakdown = computed(() => {
   const investmentsBreakdown = investments.value.map((investment) => {
@@ -414,28 +277,6 @@ const rows = computed(() => {
 
   return breakdown.value
 })
-
-const onAddInvestment = (investment: Investment) => {
-  cols.value = [...cols.value, ...getDefaultInvestmentSelectedCols(investment)]
-}
-
-const onRemoveInvestment = (investment: Investment) => {
-  cols.value = cols.value.filter((col) => {
-    const group = col.slice(0, col.lastIndexOf('.'))
-    return group !== `investment.${investment.id}`
-  })
-}
-
-const onAddLoan = (loan: Loan) => {
-  cols.value = [...cols.value, ...getDefaultLoanSelectedCols(loan)]
-}
-
-const onRemoveLoan = (loan: Loan) => {
-  cols.value = cols.value.filter((col) => {
-    const group = col.slice(0, col.lastIndexOf('.'))
-    return group !== `loan.${loan.id}`
-  })
-}
 </script>
 
 <template>
@@ -458,11 +299,11 @@ const onRemoveLoan = (loan: Loan) => {
 
       <InvestmentsTable
         v-model="investments"
-        @add-investment="onAddInvestment"
-        @remove-investment="onRemoveInvestment"
+        @add-investment="addInvestmentColumns"
+        @remove-investment="removeInvestmentColumns"
       />
 
-      <LoansTable v-model="loans" @add-loan="onAddLoan" @remove-loan="onRemoveLoan" />
+      <LoansTable v-model="loans" @add-loan="addLoanColumns" @remove-loan="removeLoanColumns" />
 
       <AppPanel heading="Initial Values">
         <div class="space-y-4">
@@ -495,8 +336,8 @@ const onRemoveLoan = (loan: Loan) => {
             <div class="font-medium">Columns:</div>
 
             <MultiSelect
-              v-model="cols"
-              :options="COL_OPTIONS"
+              v-model="columns"
+              :options="columnOptions"
               :option-label="(option: ColOption) => option.label"
               :option-value="(option: ColOption) => option.value"
               :option-group-label="(group: ColGroup) => group.label"
@@ -514,7 +355,7 @@ const onRemoveLoan = (loan: Loan) => {
 
             <Select
               v-model="groupBy"
-              :options="GROUP_BY_OPTIONS"
+              :options="groupByOptions"
               option-label="name"
               option-value="value"
               class="w-full md:w-80"
@@ -531,28 +372,28 @@ const onRemoveLoan = (loan: Loan) => {
         >
           <ColumnGroup type="header">
             <Row>
-              <template v-if="colspans['time']">
-                <Column v-if="colspans['time.months']" header="Months" :rowspan="2" />
-                <Column v-if="colspans['time.years']" header="Years" :rowspan="2" />
-                <Column v-if="colspans['time.month']" header="Month" :rowspan="2" />
-                <Column v-if="colspans['time.year']" header="Year" :rowspan="2" />
+              <template v-if="columnCounts['time']">
+                <Column v-if="columnCounts['time.months']" header="Months" :rowspan="2" />
+                <Column v-if="columnCounts['time.years']" header="Years" :rowspan="2" />
+                <Column v-if="columnCounts['time.month']" header="Month" :rowspan="2" />
+                <Column v-if="columnCounts['time.year']" header="Year" :rowspan="2" />
               </template>
               <template v-for="investment of investments" :key="investment.id">
                 <Column
-                  v-if="colspans[`investment.${investment.id}`]"
+                  v-if="columnCounts[`investment.${investment.id}`]"
                   :header="investment.name"
-                  :colspan="colspans[`investment.${investment.id}`]"
+                  :colspan="columnCounts[`investment.${investment.id}`]"
                 />
               </template>
               <template v-for="loan of loans" :key="loan.id">
                 <Column
-                  v-if="colspans[`loan.${loan.id}`]"
+                  v-if="columnCounts[`loan.${loan.id}`]"
                   :header="loan.name"
-                  :colspan="colspans[`loan.${loan.id}`]"
+                  :colspan="columnCounts[`loan.${loan.id}`]"
                 />
               </template>
-              <template v-if="colspans['summary']">
-                <Column v-if="colspans['summary.cash_out_value']" :rowspan="2">
+              <template v-if="columnCounts['summary']">
+                <Column v-if="columnCounts['summary.cash_out_value']" :rowspan="2">
                   <template #header>
                     <span class="p-datatable-column-title align-middle">Cash Out Value </span>
                     <i
@@ -564,7 +405,7 @@ const onRemoveLoan = (loan: Loan) => {
                     ></i>
                   </template>
                 </Column>
-                <Column v-if="colspans['summary.remaining_debt']" :rowspan="2">
+                <Column v-if="columnCounts['summary.remaining_debt']" :rowspan="2">
                   <template #header>
                     <span class="p-datatable-column-title align-middle">Remaining Debt </span>
                     <i
@@ -576,7 +417,7 @@ const onRemoveLoan = (loan: Loan) => {
                     ></i>
                   </template>
                 </Column>
-                <Column v-if="colspans['summary.cash_available']" :rowspan="2">
+                <Column v-if="columnCounts['summary.cash_available']" :rowspan="2">
                   <template #header>
                     <span class="p-datatable-column-title align-middle">Cash Available </span>
                     <i
@@ -589,7 +430,7 @@ const onRemoveLoan = (loan: Loan) => {
                     ></i>
                   </template>
                 </Column>
-                <Column v-if="colspans['summary.cash_invested']" :rowspan="2">
+                <Column v-if="columnCounts['summary.cash_invested']" :rowspan="2">
                   <template #header>
                     <span class="p-datatable-column-title align-middle">Cash Invested </span>
                     <i
@@ -602,7 +443,7 @@ const onRemoveLoan = (loan: Loan) => {
                     ></i>
                   </template>
                 </Column>
-                <Column v-if="colspans['summary.cash_profit']" :rowspan="2">
+                <Column v-if="columnCounts['summary.cash_profit']" :rowspan="2">
                   <template #header>
                     <span class="p-datatable-column-title align-middle">Cash Profit </span>
                     <i
@@ -619,111 +460,123 @@ const onRemoveLoan = (loan: Loan) => {
             </Row>
             <Row>
               <template v-for="investment of investments" :key="investment.id">
-                <template v-if="colspans[`investment.${investment.id}`]">
-                  <Column v-if="colspans[`investment.${investment.id}.value`]" header="Value" />
+                <template v-if="columnCounts[`investment.${investment.id}`]">
+                  <Column v-if="columnCounts[`investment.${investment.id}.value`]" header="Value" />
                   <Column
-                    v-if="colspans[`investment.${investment.id}.initial_purchase_fee`]"
+                    v-if="columnCounts[`investment.${investment.id}.initial_purchase_fee`]"
                     header="Initial Purchase Fee"
                   />
                   <Column
-                    v-if="colspans[`investment.${investment.id}.initial_purchase_price`]"
+                    v-if="columnCounts[`investment.${investment.id}.initial_purchase_price`]"
                     header="Initial Purchase Price"
                   />
                   <Column
-                    v-if="colspans[`investment.${investment.id}.total_contributions`]"
+                    v-if="columnCounts[`investment.${investment.id}.total_contributions`]"
                     header="Total Contributions"
                   />
                   <Column
-                    v-if="colspans[`investment.${investment.id}.maintenance_cost`]"
+                    v-if="columnCounts[`investment.${investment.id}.maintenance_cost`]"
                     header="Maintenance Cost"
                   />
                   <Column
-                    v-if="colspans[`investment.${investment.id}.maintenance_cash_spent`]"
+                    v-if="columnCounts[`investment.${investment.id}.maintenance_cash_spent`]"
                     header="Maintenance Cash Spent"
                   />
                   <Column
-                    v-if="colspans[`investment.${investment.id}.cash_out_fee`]"
+                    v-if="columnCounts[`investment.${investment.id}.cash_out_fee`]"
                     header="Cash Out Fee"
                   />
                   <Column
-                    v-if="colspans[`investment.${investment.id}.cash_out_value`]"
+                    v-if="columnCounts[`investment.${investment.id}.cash_out_value`]"
                     header="Cash Out Value"
                   />
                 </template>
               </template>
               <template v-for="loan of loans" :key="loan.id">
-                <template v-if="colspans[`loan.${loan.id}`]">
-                  <Column v-if="colspans[`loan.${loan.id}.debt`]" header="Debt" />
-                  <Column v-if="colspans[`loan.${loan.id}.paid`]" header="Paid" />
+                <template v-if="columnCounts[`loan.${loan.id}`]">
+                  <Column v-if="columnCounts[`loan.${loan.id}.debt`]" header="Debt" />
+                  <Column v-if="columnCounts[`loan.${loan.id}.paid`]" header="Paid" />
                 </template>
               </template>
             </Row>
           </ColumnGroup>
 
-          <template v-if="colspans['time']">
-            <Column v-if="colspans['time.months']" :field="(row) => row.months" />
-            <Column v-if="colspans['time.years']" :field="(row) => row.years" />
-            <Column v-if="colspans['time.month']" :field="(row) => row.month" />
-            <Column v-if="colspans['time.year']" :field="(row) => row.year" />
+          <template v-if="columnCounts['time']">
+            <Column v-if="columnCounts['time.months']" :field="(row) => row.months" />
+            <Column v-if="columnCounts['time.years']" :field="(row) => row.years" />
+            <Column v-if="columnCounts['time.month']" :field="(row) => row.month" />
+            <Column v-if="columnCounts['time.year']" :field="(row) => row.year" />
           </template>
 
           <template v-for="(investment, index) of investments" :key="investment.id">
-            <template v-if="colspans[`investment.${investment.id}`]">
+            <template v-if="columnCounts[`investment.${investment.id}`]">
               <Column
-                v-if="colspans[`investment.${investment.id}.value`]"
+                v-if="columnCounts[`investment.${investment.id}.value`]"
                 :field="(row) => row.investments[index].value"
               />
               <Column
-                v-if="colspans[`investment.${investment.id}.initial_purchase_fee`]"
+                v-if="columnCounts[`investment.${investment.id}.initial_purchase_fee`]"
                 :field="(row) => row.investments[index].initialPurchaseFee"
               />
               <Column
-                v-if="colspans[`investment.${investment.id}.initial_purchase_price`]"
+                v-if="columnCounts[`investment.${investment.id}.initial_purchase_price`]"
                 :field="(row) => row.investments[index].initialPurchasePrice"
               />
               <Column
-                v-if="colspans[`investment.${investment.id}.total_contributions`]"
+                v-if="columnCounts[`investment.${investment.id}.total_contributions`]"
                 :field="(row) => row.investments[index].totalContributions"
               />
               <Column
-                v-if="colspans[`investment.${investment.id}.maintenance_cost`]"
+                v-if="columnCounts[`investment.${investment.id}.maintenance_cost`]"
                 :field="(row) => row.investments[index].monthlyMaintenanceCost"
               />
               <Column
-                v-if="colspans[`investment.${investment.id}.maintenance_cash_spent`]"
+                v-if="columnCounts[`investment.${investment.id}.maintenance_cash_spent`]"
                 :field="(row) => row.investments[index].maintenanceCashSpent"
               />
               <Column
-                v-if="colspans[`investment.${investment.id}.cash_out_fee`]"
+                v-if="columnCounts[`investment.${investment.id}.cash_out_fee`]"
                 :field="(row) => row.investments[index].cashOutFee"
               />
               <Column
-                v-if="colspans[`investment.${investment.id}.cash_out_value`]"
+                v-if="columnCounts[`investment.${investment.id}.cash_out_value`]"
                 :field="(row) => row.investments[index].cashOutValue"
               />
             </template>
           </template>
 
           <template v-for="(loan, index) of loans" :key="loan.id">
-            <template v-if="colspans[`loan.${loan.id}`]">
+            <template v-if="columnCounts[`loan.${loan.id}`]">
               <Column
-                v-if="colspans[`loan.${loan.id}.debt`]"
+                v-if="columnCounts[`loan.${loan.id}.debt`]"
                 :field="(row) => row.loans[index].debt"
               />
               <Column
-                v-if="colspans[`loan.${loan.id}.paid`]"
+                v-if="columnCounts[`loan.${loan.id}.paid`]"
                 :field="(row) => row.loans[index].paid"
               />
             </template>
           </template>
 
-          <template v-if="colspans['summary']">
-            <Column v-if="colspans['summary.cash_out_value']" :field="(row) => row.cashOutValue" />
-            <Column v-if="colspans['summary.remaining_debt']" :field="(row) => row.remainingDebt" />
-            <Column v-if="colspans['summary.cash_available']" :field="(row) => row.cashAvailable" />
-            <Column v-if="colspans['summary.cash_invested']" :field="(row) => row.cashInvested" />
+          <template v-if="columnCounts['summary']">
             <Column
-              v-if="colspans['summary.cash_profit']"
+              v-if="columnCounts['summary.cash_out_value']"
+              :field="(row) => row.cashOutValue"
+            />
+            <Column
+              v-if="columnCounts['summary.remaining_debt']"
+              :field="(row) => row.remainingDebt"
+            />
+            <Column
+              v-if="columnCounts['summary.cash_available']"
+              :field="(row) => row.cashAvailable"
+            />
+            <Column
+              v-if="columnCounts['summary.cash_invested']"
+              :field="(row) => row.cashInvested"
+            />
+            <Column
+              v-if="columnCounts['summary.cash_profit']"
               :field="(row) => row.cashProfit"
               class="whitespace-nowrap"
             />
