@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Column, DataTable } from 'primevue'
+import { DataTable } from 'primevue'
 
 defineProps<{
   heading: string
@@ -7,15 +7,13 @@ defineProps<{
 </script>
 
 <template>
-  <DataTable :value="[null]" :show-headers="false">
+  <DataTable :show-headers="false">
     <template #header>
       <div class="heading">{{ heading }}</div>
     </template>
 
-    <Column>
-      <template #body>
-        <slot></slot>
-      </template>
-    </Column>
+    <template #empty>
+      <slot></slot>
+    </template>
   </DataTable>
 </template>
