@@ -3,6 +3,8 @@ import type { Investment } from '@/models/investments'
 import type { Loan } from '@/models/loans'
 import type { FormattedBreakdownItem } from '@/pages/use-breakdown'
 import { Column, ColumnGroup, DataTable, Row } from 'primevue'
+import InfoIcon from './InfoIcon.vue'
+import glossary from '@/glossary.json'
 
 defineProps<{
   investments: Investment[]
@@ -42,15 +44,8 @@ defineProps<{
         </template>
         <Column v-if="columnCounts['summary.profit']" :rowspan="2">
           <template #header>
-            <span class="p-datatable-column-title align-middle">Cash Profit </span>
-            <i
-              class="pi pi-info-circle align-middle ml-1"
-              v-tooltip="{
-                value:
-                  'This is how much better off you\'d be if you cashed out on all your properties and paid off all of your debts versus never making any investments.',
-                autoHide: false,
-              }"
-            ></i>
+            <span class="p-datatable-column-title">Cash Profit </span>
+            <InfoIcon :tooltip="glossary.profit" />
           </template>
         </Column>
       </Row>

@@ -13,5 +13,8 @@
     "interest_rate": "This is the rate at which the amount you owe (your debt) increases as a percentage of the debt outstanding.",
     "interest_rate_type": "This qualifies the interest rate: effective is the actual amount the debt grows per year (ignoring monthly payments), while nominal is a euphemism that is simply derived from the actual monthly interest rate multiplied by 12.",
     "term": "This is the number of years over which you will pay back the loan. This affects your monthly payments."
-  }
+  },
+  "equity": "This is the amount of money you have stored in your investments minus the total debt you have yet to pay off.",
+  "profit": "This is the amount of extra money you'd have at any given time compared to if you hadn't made any investments and instead had saved the cash you put into them.",
+  "cash_available": "This is how much cash you have available at any given time if you cashed out on all of your investments and payed off all of your debts."
 }
