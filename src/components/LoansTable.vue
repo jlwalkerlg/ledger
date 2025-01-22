@@ -6,6 +6,8 @@ import { ref } from 'vue'
 import LoanModal from './LoanModal.vue'
 import InterestRateText from './InterestRateText.vue'
 import type { Loan } from '@/models/loans'
+import glossary from '@/glossary.json'
+import InfoIcon from './InfoIcon.vue'
 
 const emit = defineEmits<{
   (e: 'add-loan', loan: Loan): void
@@ -63,13 +65,27 @@ const onSaveLoan = (loan: Loan) => {
       </template>
     </Column>
 
-    <Column header="Amount">
+    <Column>
+      <template #header>
+        <div>
+          Amount
+          <InfoIcon :tooltip="glossary.loans.amount" />
+        </div>
+      </template>
+
       <template #body="{ data: loan }: { data: Loan }">
         <CurrencyText :value="loan.amount" />
       </template>
     </Column>
 
-    <Column header="Interest Rate">
+    <Column>
+      <template #header>
+        <div>
+          Interest Rate
+          <InfoIcon :tooltip="glossary.loans.interest_rate" />
+        </div>
+      </template>
+
       <template #body="{ data: loan }: { data: Loan }">
         <InterestRateText
           :annual-rate-percentage="loan.annualInterestRatePercentage"
@@ -91,7 +107,14 @@ const onSaveLoan = (loan: Loan) => {
       </template>
     </Column>
 
-    <Column header="Term">
+    <Column>
+      <template #header>
+        <div>
+          Term
+          <InfoIcon :tooltip="glossary.loans.term" />
+        </div>
+      </template>
+
       <template #body="{ data: loan }: { data: Loan }">{{ loan.term }} years</template>
     </Column>
 

@@ -6,6 +6,8 @@ import InvestmentModal from './InvestmentModal.vue'
 import PercentageText from './PercentageText.vue'
 import type { Investment } from '@/models/investments'
 import InterestRateText from './InterestRateText.vue'
+import InfoIcon from './InfoIcon.vue'
+import glossary from '@/glossary.json'
 
 const emit = defineEmits<{
   (e: 'add-investment', investment: Investment): void
@@ -65,13 +67,27 @@ const onSaveInvestment = (investment: Investment) => {
       </template>
     </Column>
 
-    <Column header="Initial Value">
+    <Column>
+      <template #header>
+        <div>
+          Initial Value
+          <InfoIcon :tooltip="glossary.investments.initial_value" />
+        </div>
+      </template>
+
       <template #body="{ data: investment }: { data: Investment }">
         <CurrencyText :value="investment.initialValue" />
       </template>
     </Column>
 
-    <Column header="Purchase Fee">
+    <Column>
+      <template #header>
+        <div>
+          Purchase Fee
+          <InfoIcon :tooltip="glossary.investments.purchase_fee" />
+        </div>
+      </template>
+
       <template #body="{ data: investment }: { data: Investment }">
         <PercentageText
           v-if="investment.purchaseFeeType === 'percentage'"
@@ -81,13 +97,27 @@ const onSaveInvestment = (investment: Investment) => {
       </template>
     </Column>
 
-    <Column header="Monthly Contribution">
+    <Column>
+      <template #header>
+        <div>
+          Monthly Contribution
+          <InfoIcon :tooltip="glossary.investments.monthly_contribution" />
+        </div>
+      </template>
+
       <template #body="{ data: investment }: { data: Investment }">
         <CurrencyText :value="investment.monthlyContribution" />
       </template>
     </Column>
 
-    <Column header="Growth Rate">
+    <Column>
+      <template #header>
+        <div>
+          Growth Rate
+          <InfoIcon :tooltip="glossary.investments.growth_rate" />
+        </div>
+      </template>
+
       <template #body="{ data: investment }: { data: Investment }">
         <InterestRateText
           :annual-rate-percentage="investment.annualGrowthRatePercentage"
@@ -109,7 +139,14 @@ const onSaveInvestment = (investment: Investment) => {
       </template>
     </Column>
 
-    <Column header="Annual Maintenance Cost">
+    <Column>
+      <template #header>
+        <div>
+          Annual Maintenance Cost
+          <InfoIcon :tooltip="glossary.investments.annual_maintenance_cost" />
+        </div>
+      </template>
+
       <template #body="{ data: investment }: { data: Investment }">
         <PercentageText :value="investment.annualMaintenanceCostPercentage" />
         (effective)
@@ -122,7 +159,14 @@ const onSaveInvestment = (investment: Investment) => {
       </template>
     </Column>
 
-    <Column header="Cash Out Fee">
+    <Column>
+      <template #header>
+        <div>
+          Cash Out Fee
+          <InfoIcon :tooltip="glossary.investments.cash_out_fee" />
+        </div>
+      </template>
+
       <template #body="{ data: investment }: { data: Investment }">
         <PercentageText :value="investment.cashOutFeePercentage" />
       </template>
