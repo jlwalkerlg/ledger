@@ -54,6 +54,12 @@ defineProps<{
             <InfoIcon :tooltip="glossary.profit" />
           </template>
         </Column>
+        <Column v-if="columnCounts['summary.cash_spent']" :rowspan="2">
+          <template #header>
+            <span class="p-datatable-column-title">Cash Spent </span>
+            <InfoIcon :tooltip="glossary.cash_spent" />
+          </template>
+        </Column>
       </Row>
       <Row>
         <template v-for="investment of investments" :key="investment.id">
@@ -189,6 +195,11 @@ defineProps<{
     <Column
       v-if="columnCounts['summary.profit']"
       :field="(row: FormattedBreakdownItem) => row.profit"
+      class="whitespace-nowrap"
+    />
+    <Column
+      v-if="columnCounts['summary.cash_spent']"
+      :field="(row: FormattedBreakdownItem) => row.cashSpent"
       class="whitespace-nowrap"
     />
   </DataTable>

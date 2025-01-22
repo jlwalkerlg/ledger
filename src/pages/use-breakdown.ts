@@ -163,6 +163,7 @@ export type FormattedBreakdownItem = {
   loans: FormattedLoanBreakdownItem[]
   equity: string
   profit: string
+  cashSpent: string
 }
 
 export const useBreakdown = (
@@ -173,6 +174,12 @@ export const useBreakdown = (
   const items = computed<FormattedBreakdownItem[]>(() => {
     const investmentItems = investments.value.map(getInvestmentBreakdownItem)
     const loanItems = loans.value.map(getLoanBreakdownItem)
+
+    const initialDeposit = Math.max(
+      0,
+      sumBy(investmentItems, (investment) => investment.initialPurchasePrice) -
+        sumBy(loanItems, (loan) => loan.debt),
+    )
 
     return Array.from({ length: years.value * 12 + 1 }, (_, months) => {
       const years = Math.floor(months / 12)
@@ -204,6 +211,14 @@ export const useBreakdown = (
           return investment.interestAccrued - expenses
         }) - sumBy(loanItems, (loan) => loan.interestAccrued + loan.paid)
 
+      const cashSpent =
+        initialDeposit +
+        sumBy(
+          investmentItems,
+          (investment) => investment.maintenanceCashSpent + investment.totalContributed,
+        ) +
+        sumBy(loanItems, (loan) => loan.paid)
+
       return {
         months,
         years,
@@ -213,6 +228,7 @@ export const useBreakdown = (
         loans: loanItems.map(formatLoan),
         equity: toGbp(equity),
         profit: toGbp(profit),
+        cashSpent: toGbp(cashSpent),
       }
     })
   })

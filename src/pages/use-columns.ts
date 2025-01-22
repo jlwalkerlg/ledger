@@ -143,6 +143,7 @@ export const useColumns = (investments: Ref<Investment[]>, loans: Ref<Loan[]>) =
       items: [
         { label: 'Equity', value: 'summary.equity', group: 'summary' },
         { label: 'Profit', value: 'summary.profit', group: 'summary' },
+        { label: 'Cash Spent', value: 'summary.cash_spent', group: 'summary' },
       ],
     },
   ])

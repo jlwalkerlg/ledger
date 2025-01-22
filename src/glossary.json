@@ -16,5 +16,5 @@
   },
   "equity": "This is the amount of money you have stored in your investments minus the total debt you have yet to pay off. It does not account for any cash out fees associated with selling your investments.",
   "profit": "This is the amount of extra money you'd have at any given time compared to if you hadn't made any investments and instead had saved the cash you put into them.",
-  "cash_available": "This is how much cash you have available at any given time if you cashed out on all of your investments and payed off all of your debts."
+  "cash_spent": "This is how much cash you've spent so far on investments and paying off loans. In other words, this is how much you'd have if you had never made any investments or borrowed any money in the first place."
 }
