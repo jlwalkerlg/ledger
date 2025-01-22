@@ -1,7 +1,7 @@
 import type { Investment } from '@/models/investments'
 import type { Loan } from '@/models/loans'
 import { toGbp } from '@/utils/formatters'
-import { addPercentage, percentageOf } from '@/utils/maths'
+import { percentageOf } from '@/utils/maths'
 import sumBy from 'lodash-es/sumBy'
 import { computed, type Ref } from 'vue'
 
@@ -161,10 +161,7 @@ export type FormattedBreakdownItem = {
   year: number
   investments: FormattedInvestmentBreakdownItem[]
   loans: FormattedLoanBreakdownItem[]
-  cashOutValue: string
-  remainingDebt: string
   cashAvailable: string
-  cashInvested: string
   cashProfit: string
 }
 
@@ -195,6 +192,16 @@ export const useBreakdown = (
         }
       }
 
+      const profit =
+        sumBy(
+          investmentItems,
+          (investment) =>
+            investment.interestAccrued -
+            investment.initialPurchaseFee -
+            investment.cashOutFee -
+            investment.maintenanceCashSpent,
+        ) - sumBy(loanItems, (loan) => loan.interestAccrued + loan.paid)
+
       return {
         months,
         years,
@@ -202,17 +209,13 @@ export const useBreakdown = (
         year,
         investments: investmentItems.map(formatInvestment),
         loans: loanItems.map(formatLoan),
-        cashOutValue: toGbp(0),
-        remainingDebt: toGbp(0),
         cashAvailable: toGbp(0),
-        cashInvested: toGbp(0),
-        cashProfit: toGbp(0),
+        cashProfit: toGbp(profit),
       }
     })
   })
 
   return {
-    initialCashAvailable: 0,
     items,
   }
 }

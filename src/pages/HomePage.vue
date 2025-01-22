@@ -17,51 +17,52 @@ import ColumnSelect from '@/components/ColumnSelect.vue'
 import GroupBySelect from '@/components/GroupBySelect.vue'
 
 const years = ref(5)
+const initialCashBalance = ref(0)
 
 const investments = ref<Investment[]>([
+  {
+    id: uniqueId(),
+    name: 'ISA',
+    initialValue: 20000,
+    purchaseFeeType: 'flat',
+    purchaseFeePercentage: 0,
+    purchaseFeeAmount: 0,
+    monthlyContribution: 0,
+    annualGrowthRatePercentage: 4.02,
+    growthRateType: 'nominal',
+    monthlyGrowthRatePercentage: getMonthlyInterestRatePercentage(4.02, 'nominal'),
+    annualMaintenanceCostPercentage: 0,
+    monthlyMaintenanceCostPercentage: getMonthlyInterestRatePercentage(0, 'effective'),
+    cashOutFeePercentage: 0,
+  },
   // {
   //   id: uniqueId(),
-  //   name: 'ISA',
-  //   initialValue: 20000,
-  //   purchaseFeeType: 'flat',
+  //   name: 'House',
+  //   initialValue: 100000,
+  //   purchaseFeeType: 'percentage',
   //   purchaseFeePercentage: 0,
-  //   purchaseFeeAmount: 10,
-  //   monthlyContribution: 400,
-  //   annualGrowthRatePercentage: 4.02,
-  //   growthRateType: 'nominal',
-  //   monthlyGrowthRatePercentage: getMonthlyInterestRatePercentage(4.02, 'nominal'),
+  //   purchaseFeeAmount: 0,
+  //   monthlyContribution: 0,
+  //   annualGrowthRatePercentage: 1,
+  //   growthRateType: 'effective',
+  //   monthlyGrowthRatePercentage: getMonthlyInterestRatePercentage(1, 'effective'),
   //   annualMaintenanceCostPercentage: 0,
   //   monthlyMaintenanceCostPercentage: getMonthlyInterestRatePercentage(0, 'effective'),
   //   cashOutFeePercentage: 0,
   // },
-  {
-    id: uniqueId(),
-    name: 'House',
-    initialValue: 100000,
-    purchaseFeeType: 'percentage',
-    purchaseFeePercentage: 5,
-    purchaseFeeAmount: 0,
-    monthlyContribution: 0,
-    annualGrowthRatePercentage: 5,
-    growthRateType: 'effective',
-    monthlyGrowthRatePercentage: getMonthlyInterestRatePercentage(5, 'effective'),
-    annualMaintenanceCostPercentage: 1,
-    monthlyMaintenanceCostPercentage: getMonthlyInterestRatePercentage(1, 'effective'),
-    cashOutFeePercentage: 5,
-  },
 ])
 
 const loans = ref<Loan[]>([
-  {
-    id: uniqueId(),
-    name: 'Mortgage',
-    amount: 80000,
-    annualInterestRatePercentage: 4.5,
-    interestRateType: 'nominal',
-    monthlyInterestRatePercentage: getMonthlyInterestRatePercentage(4.5, 'nominal'),
-    term: 15,
-    monthlyPayment: getMonthlyLoanPayment(80000, 4.5, 'nominal', 15),
-  },
+  // {
+  //   id: uniqueId(),
+  //   name: 'Mortgage',
+  //   amount: 80000,
+  //   annualInterestRatePercentage: 4.5,
+  //   interestRateType: 'nominal',
+  //   monthlyInterestRatePercentage: getMonthlyInterestRatePercentage(4.5, 'nominal'),
+  //   term: 15,
+  //   monthlyPayment: getMonthlyLoanPayment(80000, 4.5, 'nominal', 15),
+  // },
   // {
   //   name: 'Loan',
   //   amount: 2000,
@@ -85,7 +86,7 @@ const {
 
 const { value: groupBy, options: groupByOptions } = useGroupBy()
 
-const { initialCashAvailable, items } = useBreakdown(years, investments, loans)
+const { items } = useBreakdown(years, investments, loans)
 
 const rows = computed(() => {
   if (groupBy.value === 'years') {
@@ -111,6 +112,23 @@ const rows = computed(() => {
               Enter how many years you want to show.
             </Message>
           </div>
+
+          <div class="space-y-2">
+            <label for="initial_cash_balance">Initial Cash Balance</label>
+            <InputGroup>
+              <InputGroupAddon>£</InputGroupAddon>
+              <InputNumber
+                input-id="initial_cash_balance"
+                v-model="initialCashBalance"
+                :min="0"
+                :min-fraction-digits="2"
+                :max-fraction-digits="2"
+              />
+            </InputGroup>
+            <Message size="small" severity="secondary" variant="simple">
+              Enter your starting cash balance.
+            </Message>
+          </div>
         </div>
       </AppPanel>
 
@@ -121,31 +139,6 @@ const rows = computed(() => {
       />
 
       <LoansTable v-model="loans" @add-loan="addLoanColumns" @remove-loan="removeLoanColumns" />
-
-      <AppPanel heading="Initial Values">
-        <div class="space-y-4">
-          <div class="space-y-2">
-            <label for="initial_cash_available">Cash Available</label>
-            <InputGroup>
-              <InputGroupAddon>£</InputGroupAddon>
-              <InputNumber
-                input-id="initial_cash_available"
-                :model-value="initialCashAvailable"
-                disabled
-                :min-fraction-digits="2"
-                :max-fraction-digits="2"
-              />
-            </InputGroup>
-            <Message size="small" severity="secondary" variant="simple">
-              The cash you'll need upfront need is the sum of the money that's missing each time you
-              purchase an investment. For example, if you purchase a property worth £100,000 without
-              taking a loan, then you'll need £100,000 in cash. If you purchase a property worth
-              £100,000 using a loan of £80,000, then sell the property for a profit of £10,000 and
-              buy another property for £20,000, then you'll need to start with £30,000 in cash.
-            </Message>
-          </div>
-        </div>
-      </AppPanel>
 
       <AppPanel heading="Results">
         <div class="flex items-center gap-6">
