@@ -192,14 +192,12 @@ export const useBreakdown = (
       }
 
       const profit =
-        sumBy(
-          investmentItems,
-          (investment) =>
-            investment.interestAccrued -
-            investment.initialPurchaseFee -
-            investment.cashOutFee -
-            investment.maintenanceCashSpent,
-        ) - sumBy(loanItems, (loan) => loan.interestAccrued + loan.paid)
+        sumBy(investmentItems, (investment) => {
+          const expenses =
+            investment.initialPurchaseFee + investment.cashOutFee + investment.maintenanceCashSpent
+
+          return investment.interestAccrued - expenses
+        }) - sumBy(loanItems, (loan) => loan.interestAccrued + loan.paid)
 
       return {
         months,
