@@ -161,8 +161,7 @@ export type FormattedBreakdownItem = {
   year: number
   investments: FormattedInvestmentBreakdownItem[]
   loans: FormattedLoanBreakdownItem[]
-  cashAvailable: string
-  cashProfit: string
+  profit: string
 }
 
 export const useBreakdown = (
@@ -209,8 +208,7 @@ export const useBreakdown = (
         year,
         investments: investmentItems.map(formatInvestment),
         loans: loanItems.map(formatLoan),
-        cashAvailable: toGbp(0),
-        cashProfit: toGbp(profit),
+        profit: toGbp(profit),
       }
     })
   })

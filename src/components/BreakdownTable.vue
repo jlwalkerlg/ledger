@@ -40,20 +40,7 @@ defineProps<{
             :colspan="columnCounts[`loan.${loan.id}`]"
           />
         </template>
-        <Column v-if="columnCounts['summary.cash_available']" :rowspan="2">
-          <template #header>
-            <span class="p-datatable-column-title align-middle">Cash Available </span>
-            <i
-              class="pi pi-info-circle align-middle ml-1"
-              v-tooltip="{
-                value:
-                  'This is how much cash you\'d have if you cashed out on all of your investments and payed off all of your remaining debt.',
-                autoHide: false,
-              }"
-            ></i>
-          </template>
-        </Column>
-        <Column v-if="columnCounts['summary.cash_profit']" :rowspan="2">
+        <Column v-if="columnCounts['summary.profit']" :rowspan="2">
           <template #header>
             <span class="p-datatable-column-title align-middle">Cash Profit </span>
             <i
@@ -182,13 +169,8 @@ defineProps<{
     </template>
 
     <Column
-      v-if="columnCounts['summary.cash_available']"
-      :field="(row) => row.cashAvailable"
-      class="whitespace-nowrap"
-    />
-    <Column
-      v-if="columnCounts['summary.cash_profit']"
-      :field="(row) => row.cashProfit"
+      v-if="columnCounts['summary.profit']"
+      :field="(row) => row.profit"
       class="whitespace-nowrap"
     />
   </DataTable>

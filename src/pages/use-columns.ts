@@ -41,8 +41,7 @@ export const useColumns = (investments: Ref<Investment[]>, loans: Ref<Loan[]>) =
     'time.years',
     ...flatten(investments.value.map(getDefaultInvestmentColumns)),
     ...flatten(loans.value.map(getDefaultLoanColumns)),
-    'summary.cash_available',
-    'summary.cash_profit',
+    'summary.profit',
   ])
 
   const columnCounts = computed(() => {
@@ -145,10 +144,7 @@ export const useColumns = (investments: Ref<Investment[]>, loans: Ref<Loan[]>) =
     }),
     {
       label: 'Summary',
-      items: [
-        { label: 'Cash Available', value: 'summary.cash_available', group: 'summary' },
-        { label: 'Cash Profit', value: 'summary.cash_profit', group: 'summary' },
-      ],
+      items: [{ label: 'Profit', value: 'summary.profit', group: 'summary' }],
     },
   ])
 
