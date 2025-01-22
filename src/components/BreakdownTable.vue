@@ -105,48 +105,60 @@ defineProps<{
       </Row>
     </ColumnGroup>
 
-    <Column v-if="columnCounts['time.months']" :field="(row) => row.months" />
-    <Column v-if="columnCounts['time.years']" :field="(row) => row.years" />
-    <Column v-if="columnCounts['time.month']" :field="(row) => row.month" />
-    <Column v-if="columnCounts['time.year']" :field="(row) => row.year" />
+    <Column
+      v-if="columnCounts['time.months']"
+      :field="(row: FormattedBreakdownItem) => row.months.toString()"
+    />
+    <Column
+      v-if="columnCounts['time.years']"
+      :field="(row: FormattedBreakdownItem) => row.years.toString()"
+    />
+    <Column
+      v-if="columnCounts['time.month']"
+      :field="(row: FormattedBreakdownItem) => row.month.toString()"
+    />
+    <Column
+      v-if="columnCounts['time.year']"
+      :field="(row: FormattedBreakdownItem) => row.year.toString()"
+    />
 
     <template v-for="(investment, index) of investments" :key="investment.id">
       <template v-if="columnCounts[`investment.${investment.id}`]">
         <Column
           v-if="columnCounts[`investment.${investment.id}.value`]"
-          :field="(row) => row.investments[index].value"
+          :field="(row: FormattedBreakdownItem) => row.investments[index].value"
         />
         <Column
           v-if="columnCounts[`investment.${investment.id}.initial_purchase_fee`]"
-          :field="(row) => row.investments[index].initialPurchaseFee"
+          :field="(row: FormattedBreakdownItem) => row.investments[index].initialPurchaseFee"
         />
         <Column
           v-if="columnCounts[`investment.${investment.id}.initial_purchase_price`]"
-          :field="(row) => row.investments[index].initialPurchasePrice"
+          :field="(row: FormattedBreakdownItem) => row.investments[index].initialPurchasePrice"
         />
         <Column
           v-if="columnCounts[`investment.${investment.id}.total_contributions`]"
-          :field="(row) => row.investments[index].totalContributions"
+          :field="(row: FormattedBreakdownItem) => row.investments[index].totalContributions"
         />
         <Column
           v-if="columnCounts[`investment.${investment.id}.interest_accrued`]"
-          :field="(row) => row.investments[index].interestAccrued"
+          :field="(row: FormattedBreakdownItem) => row.investments[index].interestAccrued"
         />
         <Column
           v-if="columnCounts[`investment.${investment.id}.maintenance_cost`]"
-          :field="(row) => row.investments[index].monthlyMaintenanceCost"
+          :field="(row: FormattedBreakdownItem) => row.investments[index].monthlyMaintenanceCost"
         />
         <Column
           v-if="columnCounts[`investment.${investment.id}.maintenance_cash_spent`]"
-          :field="(row) => row.investments[index].maintenanceCashSpent"
+          :field="(row: FormattedBreakdownItem) => row.investments[index].maintenanceCashSpent"
         />
         <Column
           v-if="columnCounts[`investment.${investment.id}.cash_out_fee`]"
-          :field="(row) => row.investments[index].cashOutFee"
+          :field="(row: FormattedBreakdownItem) => row.investments[index].cashOutFee"
         />
         <Column
           v-if="columnCounts[`investment.${investment.id}.cash_out_value`]"
-          :field="(row) => row.investments[index].cashOutValue"
+          :field="(row: FormattedBreakdownItem) => row.investments[index].cashOutValue"
         />
       </template>
     </template>
@@ -155,22 +167,22 @@ defineProps<{
       <template v-if="columnCounts[`loan.${loan.id}`]">
         <Column
           v-if="columnCounts[`loan.${loan.id}.debt`]"
-          :field="(row) => row.loans[index].debt"
+          :field="(row: FormattedBreakdownItem) => row.loans[index].debt"
         />
         <Column
           v-if="columnCounts[`loan.${loan.id}.paid`]"
-          :field="(row) => row.loans[index].paid"
+          :field="(row: FormattedBreakdownItem) => row.loans[index].paid"
         />
         <Column
           v-if="columnCounts[`loan.${loan.id}.interest_accrued`]"
-          :field="(row) => row.loans[index].interestAccrued"
+          :field="(row: FormattedBreakdownItem) => row.loans[index].interestAccrued"
         />
       </template>
     </template>
 
     <Column
       v-if="columnCounts['summary.profit']"
-      :field="(row) => row.profit"
+      :field="(row: FormattedBreakdownItem) => row.profit"
       class="whitespace-nowrap"
     />
   </DataTable>
