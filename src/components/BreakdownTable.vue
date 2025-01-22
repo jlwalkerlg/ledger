@@ -44,13 +44,13 @@ defineProps<{
         </template>
         <Column v-if="columnCounts['summary.equity']" :rowspan="2">
           <template #header>
-            <span class="p-datatable-column-title">Cash Equity </span>
+            <span class="p-datatable-column-title">Equity </span>
             <InfoIcon :tooltip="glossary.equity" />
           </template>
         </Column>
         <Column v-if="columnCounts['summary.profit']" :rowspan="2">
           <template #header>
-            <span class="p-datatable-column-title">Cash Profit </span>
+            <span class="p-datatable-column-title">Profit </span>
             <InfoIcon :tooltip="glossary.profit" />
           </template>
         </Column>
