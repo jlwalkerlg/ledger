@@ -19,14 +19,10 @@ const getDefaultInvestmentColumns = (investment: Investment) => {
 
   return [
     `${group}.value`,
-    // `${group}.initial_purchase_fee`,
-    // `${group}.initial_purchase_price`,
-    `${group}.total_contributions`,
+    `${group}.total_contributed`,
     `${group}.interest_accrued`,
-    // `${group}.maintenance_cost`,
     `${group}.maintenance_cash_spent`,
-    // `${group}.cash_out_fee`,
-    `${group}.cash_out_value`,
+    `${group}.cash_out_fee`,
   ]
 }
 
@@ -90,8 +86,8 @@ export const useColumns = (investments: Ref<Investment[]>, loans: Ref<Loan[]>) =
             group,
           },
           {
-            label: 'Total Contributions',
-            value: `${group}.total_contributions`,
+            label: 'Total Contributed',
+            value: `${group}.total_contributed`,
             group,
           },
           {
@@ -144,7 +140,10 @@ export const useColumns = (investments: Ref<Investment[]>, loans: Ref<Loan[]>) =
     }),
     {
       label: 'Summary',
-      items: [{ label: 'Profit', value: 'summary.profit', group: 'summary' }],
+      items: [
+        { label: 'Equity', value: 'summary.equity', group: 'summary' },
+        { label: 'Profit', value: 'summary.profit', group: 'summary' },
+      ],
     },
   ])
 

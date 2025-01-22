@@ -12,7 +12,7 @@ type InvestmentBreakdownItem = {
   initialPurchaseFee: number
   initialPurchasePrice: number
   monthlyContribution: number
-  totalContributions: number
+  totalContributed: number
   interestAccrued: number
   monthlyGrowthRatePercentage: number
   maintenanceCashSpent: number
@@ -29,7 +29,7 @@ export type FormattedInvestmentBreakdownItem = {
   value: string
   initialPurchaseFee: string
   initialPurchasePrice: string
-  totalContributions: string
+  totalContributed: string
   interestAccrued: string
   monthlyMaintenanceCost: string
   maintenanceCashSpent: string
@@ -52,7 +52,7 @@ const getInvestmentBreakdownItem = (investment: Investment): InvestmentBreakdown
     initialPurchaseFee,
     initialPurchasePrice: investment.initialValue + initialPurchaseFee,
     monthlyContribution: investment.monthlyContribution,
-    totalContributions: 0,
+    totalContributed: 0,
     interestAccrued: 0,
     monthlyGrowthRatePercentage: investment.monthlyGrowthRatePercentage,
     maintenanceCashSpent: 0,
@@ -68,7 +68,7 @@ const getInvestmentBreakdownItem = (investment: Investment): InvestmentBreakdown
 }
 
 const advanceInvestment = (investment: InvestmentBreakdownItem) => {
-  investment.totalContributions += investment.monthlyContribution
+  investment.totalContributed += investment.monthlyContribution
   investment.value += investment.monthlyContribution
   investment.maintenanceCashSpent += investment.monthlyMaintenanceCost
   const interest = percentageOf(investment.value, investment.monthlyGrowthRatePercentage)
@@ -91,7 +91,7 @@ const formatInvestment = (
     value: toGbp(investment.value),
     initialPurchaseFee: toGbp(investment.initialPurchaseFee),
     initialPurchasePrice: toGbp(investment.initialPurchasePrice),
-    totalContributions: toGbp(investment.totalContributions),
+    totalContributed: toGbp(investment.totalContributed),
     interestAccrued: toGbp(investment.interestAccrued),
     monthlyMaintenanceCost: toGbp(investment.monthlyMaintenanceCost),
     maintenanceCashSpent: toGbp(investment.maintenanceCashSpent),
@@ -161,6 +161,7 @@ export type FormattedBreakdownItem = {
   year: number
   investments: FormattedInvestmentBreakdownItem[]
   loans: FormattedLoanBreakdownItem[]
+  equity: string
   profit: string
 }
 
@@ -191,6 +192,10 @@ export const useBreakdown = (
         }
       }
 
+      const equity =
+        sumBy(investmentItems, (investment) => investment.cashOutValue) -
+        sumBy(loanItems, (loan) => loan.debt)
+
       const profit =
         sumBy(investmentItems, (investment) => {
           const expenses =
@@ -206,6 +211,7 @@ export const useBreakdown = (
         year,
         investments: investmentItems.map(formatInvestment),
         loans: loanItems.map(formatLoan),
+        equity: toGbp(equity),
         profit: toGbp(profit),
       }
     })

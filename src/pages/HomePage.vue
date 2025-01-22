@@ -5,7 +5,7 @@ import InvestmentsTable from '@/components/InvestmentsTable.vue'
 import LoansTable from '@/components/LoansTable.vue'
 import type { Investment } from '@/models/investments'
 import type { Loan } from '@/models/loans'
-import { getMonthlyInterestRatePercentage, getMonthlyLoanPayment } from '@/utils/maths'
+import { getMonthlyInterestRatePercentage } from '@/utils/maths'
 import uniqueId from 'lodash-es/uniqueId'
 import { InputGroup, InputGroupAddon, InputNumber, Message, ScrollTop } from 'primevue'
 import { computed, ref } from 'vue'
@@ -17,7 +17,6 @@ import ColumnSelect from '@/components/ColumnSelect.vue'
 import GroupBySelect from '@/components/GroupBySelect.vue'
 
 const years = ref(5)
-const initialCashBalance = ref(0)
 
 const investments = ref<Investment[]>([
   {
@@ -110,23 +109,6 @@ const rows = computed(() => {
             </InputGroup>
             <Message size="small" severity="secondary" variant="simple">
               Enter how many years you want to show.
-            </Message>
-          </div>
-
-          <div class="space-y-2">
-            <label for="initial_cash_balance">Initial Cash Balance</label>
-            <InputGroup>
-              <InputGroupAddon>£</InputGroupAddon>
-              <InputNumber
-                input-id="initial_cash_balance"
-                v-model="initialCashBalance"
-                :min="0"
-                :min-fraction-digits="2"
-                :max-fraction-digits="2"
-              />
-            </InputGroup>
-            <Message size="small" severity="secondary" variant="simple">
-              Enter your starting cash balance.
             </Message>
           </div>
         </div>

@@ -42,6 +42,12 @@ defineProps<{
             :colspan="columnCounts[`loan.${loan.id}`]"
           />
         </template>
+        <Column v-if="columnCounts['summary.equity']" :rowspan="2">
+          <template #header>
+            <span class="p-datatable-column-title">Cash Equity </span>
+            <InfoIcon :tooltip="glossary.equity" />
+          </template>
+        </Column>
         <Column v-if="columnCounts['summary.profit']" :rowspan="2">
           <template #header>
             <span class="p-datatable-column-title">Cash Profit </span>
@@ -62,8 +68,8 @@ defineProps<{
               header="Initial Purchase Price"
             />
             <Column
-              v-if="columnCounts[`investment.${investment.id}.total_contributions`]"
-              header="Total Contributions"
+              v-if="columnCounts[`investment.${investment.id}.total_contributed`]"
+              header="Total Contributed"
             />
             <Column
               v-if="columnCounts[`investment.${investment.id}.interest_accrued`]"
@@ -132,8 +138,8 @@ defineProps<{
           :field="(row: FormattedBreakdownItem) => row.investments[index].initialPurchasePrice"
         />
         <Column
-          v-if="columnCounts[`investment.${investment.id}.total_contributions`]"
-          :field="(row: FormattedBreakdownItem) => row.investments[index].totalContributions"
+          v-if="columnCounts[`investment.${investment.id}.total_contributed`]"
+          :field="(row: FormattedBreakdownItem) => row.investments[index].totalContributed"
         />
         <Column
           v-if="columnCounts[`investment.${investment.id}.interest_accrued`]"
@@ -175,6 +181,11 @@ defineProps<{
       </template>
     </template>
 
+    <Column
+      v-if="columnCounts['summary.equity']"
+      :field="(row: FormattedBreakdownItem) => row.equity"
+      class="whitespace-nowrap"
+    />
     <Column
       v-if="columnCounts['summary.profit']"
       :field="(row: FormattedBreakdownItem) => row.profit"
