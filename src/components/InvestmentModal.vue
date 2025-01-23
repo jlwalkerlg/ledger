@@ -1,10 +1,7 @@
 <script setup lang="ts">
+import { NAMED_FEE_TYPES, type FeeType } from '@/models/fees'
 import { NAMED_INTEREST_RATE_TYPES, type InterestRateType } from '@/models/interest-rates'
-import {
-  NAMED_PURCHASE_FEE_TYPES,
-  type Investment,
-  type PurchaseFeeType,
-} from '@/models/investments'
+import { type Investment } from '@/models/investments'
 import { addPercentage, getMonthlyInterestRatePercentage } from '@/utils/maths'
 import type { NamedValue } from '@/utils/types'
 import uniqueId from 'lodash-es/uniqueId'
@@ -24,7 +21,7 @@ const defaults = {
   name: 'House',
   initialValue: 144444,
   purchaseFee: {
-    type: 'percentage' as PurchaseFeeType,
+    type: 'percentage' as FeeType,
     percentage: 5,
     flat: 0,
   },
@@ -187,9 +184,9 @@ watch(visible, (visible) => {
           <Select
             label-id="purchase_fee_type"
             v-model="purchaseFee.type"
-            :options="NAMED_PURCHASE_FEE_TYPES"
-            :option-label="(option: NamedValue<PurchaseFeeType>) => option.name"
-            :option-value="(option: NamedValue<PurchaseFeeType>) => option.value"
+            :options="NAMED_FEE_TYPES"
+            :option-label="(option: NamedValue<FeeType>) => option.name"
+            :option-value="(option: NamedValue<FeeType>) => option.value"
           />
         </InputGroup>
         <Message size="small" severity="secondary" variant="simple">
