@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { NAMED_FEE_TYPES, type FeeType } from '@/models/fees'
 import type { NamedValue } from '@/utils/types'
+import { Select } from 'primevue'
 
 const type = defineModel<FeeType>({
   required: true,

@@ -70,7 +70,7 @@ const onSaveInvestment = (investment: Investment) => {
     <Column>
       <template #header>
         <div>
-          Initial Value
+          <span class="p-datatable-column-title">Initial Value </span>
           <InfoIcon :tooltip="glossary.investments.initial_value" />
         </div>
       </template>
@@ -83,7 +83,7 @@ const onSaveInvestment = (investment: Investment) => {
     <Column>
       <template #header>
         <div>
-          Purchase Fee
+          <span class="p-datatable-column-title">Purchase Fee </span>
           <InfoIcon :tooltip="glossary.investments.purchase_fee" />
         </div>
       </template>
@@ -100,7 +100,7 @@ const onSaveInvestment = (investment: Investment) => {
     <Column>
       <template #header>
         <div>
-          Monthly Contribution
+          <span class="p-datatable-column-title">Monthly Contribution </span>
           <InfoIcon :tooltip="glossary.investments.monthly_contribution" />
         </div>
       </template>
@@ -113,7 +113,7 @@ const onSaveInvestment = (investment: Investment) => {
     <Column>
       <template #header>
         <div>
-          Growth Rate
+          <span class="p-datatable-column-title">Growth Rate </span>
           <InfoIcon :tooltip="glossary.investments.growth_rate" />
         </div>
       </template>
@@ -139,7 +139,7 @@ const onSaveInvestment = (investment: Investment) => {
     <Column>
       <template #header>
         <div>
-          Annual Maintenance Cost
+          <span class="p-datatable-column-title">Annual Maintenance Cost </span>
           <InfoIcon :tooltip="glossary.investments.annual_maintenance_cost" />
         </div>
       </template>
@@ -159,7 +159,7 @@ const onSaveInvestment = (investment: Investment) => {
     <Column>
       <template #header>
         <div>
-          Cash Out Fee
+          <span class="p-datatable-column-title">Cash Out Fee </span>
           <InfoIcon :tooltip="glossary.investments.cash_out_fee" />
         </div>
       </template>

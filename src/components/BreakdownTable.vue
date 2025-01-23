@@ -44,20 +44,26 @@ defineProps<{
         </template>
         <Column v-if="columnCounts['summary.equity']" :rowspan="2">
           <template #header>
-            <span class="p-datatable-column-title">Equity </span>
-            <InfoIcon :tooltip="glossary.equity" />
+            <div>
+              <span class="p-datatable-column-title">Equity </span>
+              <InfoIcon :tooltip="glossary.equity" />
+            </div>
           </template>
         </Column>
         <Column v-if="columnCounts['summary.profit']" :rowspan="2">
           <template #header>
-            <span class="p-datatable-column-title">Profit </span>
-            <InfoIcon :tooltip="glossary.profit" />
+            <div>
+              <span class="p-datatable-column-title">Profit </span>
+              <InfoIcon :tooltip="glossary.profit" />
+            </div>
           </template>
         </Column>
         <Column v-if="columnCounts['summary.cash_spent']" :rowspan="2">
           <template #header>
-            <span class="p-datatable-column-title">Cash Spent </span>
-            <InfoIcon :tooltip="glossary.cash_spent" />
+            <div>
+              <span class="p-datatable-column-title">Cash Spent </span>
+              <InfoIcon :tooltip="glossary.cash_spent" />
+            </div>
           </template>
         </Column>
       </Row>

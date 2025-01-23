@@ -68,7 +68,7 @@ const onSaveLoan = (loan: Loan) => {
     <Column>
       <template #header>
         <div>
-          Amount
+          <span class="p-datatable-column-title">Amount </span>
           <InfoIcon :tooltip="glossary.loans.amount" />
         </div>
       </template>
@@ -81,7 +81,7 @@ const onSaveLoan = (loan: Loan) => {
     <Column>
       <template #header>
         <div>
-          Interest Rate
+          <span class="p-datatable-column-title">Interest Rate </span>
           <InfoIcon :tooltip="glossary.loans.interest_rate" />
         </div>
       </template>
@@ -107,7 +107,7 @@ const onSaveLoan = (loan: Loan) => {
     <Column>
       <template #header>
         <div>
-          Term
+          <span class="p-datatable-column-title">Term </span>
           <InfoIcon :tooltip="glossary.loans.term" />
         </div>
       </template>
