@@ -23,9 +23,10 @@ const investments = ref<Investment[]>([
     id: uniqueId(),
     name: 'ISA',
     initialValue: 20000,
-    purchaseFeeType: 'flat',
-    purchaseFeePercentage: 0,
-    purchaseFeeAmount: 0,
+    purchaseFee: {
+      type: 'flat',
+      value: 0,
+    },
     monthlyContribution: 0,
     annualGrowthRatePercentage: 4.02,
     growthRateType: 'nominal',

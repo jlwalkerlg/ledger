@@ -39,9 +39,9 @@ export type FormattedInvestmentBreakdownItem = {
 
 const getInvestmentBreakdownItem = (investment: Investment): InvestmentBreakdownItem => {
   const initialPurchaseFee =
-    investment.purchaseFeeType === 'percentage'
-      ? percentageOf(investment.initialValue, investment.purchaseFeePercentage)
-      : investment.purchaseFeeAmount
+    investment.purchaseFee.type === 'percentage'
+      ? percentageOf(investment.initialValue, investment.purchaseFee.value)
+      : investment.purchaseFee.value
 
   const cashOutFee = percentageOf(investment.initialValue, investment.cashOutFeePercentage)
 

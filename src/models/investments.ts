@@ -5,9 +5,7 @@ export type Investment = {
   id: string
   name: string
   initialValue: number
-  purchaseFeeType: PurchaseFeeType
-  purchaseFeePercentage: number
-  purchaseFeeAmount: number
+  purchaseFee: PurchaseFee
   monthlyContribution: number
   annualGrowthRatePercentage: number
   monthlyGrowthRatePercentage: number
@@ -15,6 +13,11 @@ export type Investment = {
   annualMaintenanceCostPercentage: number
   monthlyMaintenanceCostPercentage: number
   cashOutFeePercentage: number
+}
+
+export type PurchaseFee = {
+  type: PurchaseFeeType
+  value: number
 }
 
 export type PurchaseFeeType = 'percentage' | 'flat'

@@ -90,10 +90,10 @@ const onSaveInvestment = (investment: Investment) => {
 
       <template #body="{ data: investment }: { data: Investment }">
         <PercentageText
-          v-if="investment.purchaseFeeType === 'percentage'"
-          :value="investment.purchaseFeePercentage"
+          v-if="investment.purchaseFee.type === 'percentage'"
+          :value="investment.purchaseFee.value"
         />
-        <CurrencyText v-else :value="investment.purchaseFeeAmount" />
+        <CurrencyText v-else :value="investment.purchaseFee.value" />
       </template>
     </Column>
 
