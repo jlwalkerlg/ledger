@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NAMED_FEE_TYPES, type FeeType } from '@/models/fees'
+import { type FeeType } from '@/models/fees'
 import { NAMED_INTEREST_RATE_TYPES, type InterestRateType } from '@/models/interest-rates'
 import { type Investment } from '@/models/investments'
 import { addPercentage, getMonthlyInterestRatePercentage } from '@/utils/maths'
@@ -16,6 +16,7 @@ import {
   Select,
 } from 'primevue'
 import { computed, ref, watch } from 'vue'
+import FeeTypeSelect from './FeeTypeSelect.vue'
 
 const defaults = {
   name: 'House',
@@ -182,13 +183,7 @@ watch(visible, (visible) => {
       <div class="space-y-2">
         <label for="purchase_fee_type">Purchase Fee Type</label>
         <InputGroup>
-          <Select
-            label-id="purchase_fee_type"
-            v-model="purchaseFee.type"
-            :options="NAMED_FEE_TYPES"
-            :option-label="(option: NamedValue<FeeType>) => option.name"
-            :option-value="(option: NamedValue<FeeType>) => option.value"
-          />
+          <FeeTypeSelect v-model="purchaseFee.type" label-id="purchase_fee_type" />
         </InputGroup>
         <Message size="small" severity="secondary" variant="simple">
           Select the type of growth rate.
