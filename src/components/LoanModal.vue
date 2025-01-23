@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NAMED_INTEREST_RATE_TYPES, type InterestRateType } from '@/models/interest-rates'
+import { type InterestRateType } from '@/models/interest-rates'
 import type { Loan } from '@/models/loans'
 import { getMonthlyInterestRatePercentage, getMonthlyLoanPayment } from '@/utils/maths'
 import uniqueId from 'lodash-es/uniqueId'
@@ -11,9 +11,9 @@ import {
   InputNumber,
   InputText,
   Message,
-  Select,
 } from 'primevue'
 import { computed, ref, watch } from 'vue'
+import InterestRateTypeSelect from './InterestRateTypeSelect.vue'
 
 const defaults = {
   name: 'Mortgage',
@@ -131,13 +131,7 @@ watch(visible, (visible) => {
       <div class="space-y-2">
         <label for="interest_rate_type">Interest Rate Type</label>
         <InputGroup>
-          <Select
-            label-id="interest_rate_type"
-            v-model="interestRate.type"
-            :options="NAMED_INTEREST_RATE_TYPES"
-            :option-label="(option) => option.name"
-            :option-value="(option) => option.value"
-          />
+          <InterestRateTypeSelect v-model="interestRate.type" label-id="interest_rate_type" />
         </InputGroup>
         <Message size="small" severity="secondary" variant="simple">
           Select the type of interest rate.
