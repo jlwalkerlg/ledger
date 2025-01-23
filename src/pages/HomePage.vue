@@ -33,8 +33,10 @@ const investments = ref<Investment[]>([
       yearlyPercentage: 4.02,
       monthlyPercentage: getMonthlyInterestRatePercentage(4.02, 'nominal'),
     },
-    annualMaintenanceCostPercentage: 0,
-    monthlyMaintenanceCostPercentage: getMonthlyInterestRatePercentage(0, 'effective'),
+    maintenanceCost: {
+      yearlyPercentage: 0,
+      monthlyPercentage: getMonthlyInterestRatePercentage(0, 'effective'),
+    },
     cashOutFeePercentage: 0,
   },
   // {

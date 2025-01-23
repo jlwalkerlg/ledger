@@ -30,7 +30,9 @@ const defaults = {
     type: 'effective' as InterestRateType,
     yearlyPercentage: 3,
   },
-  annualMaintenanceCostPercentage: 1,
+  maintenanceCost: {
+    yearlyPercentage: 1,
+  },
   cashOutFeePercentage: 5,
 }
 
@@ -62,9 +64,10 @@ const growthRate = ref({
   type: investment?.growthRate.type ?? defaults.growthRate.type,
   yearlyPercentage: investment?.growthRate.yearlyPercentage ?? defaults.growthRate.yearlyPercentage,
 })
-const annualMaintenanceCostPercentage = ref(
-  investment?.annualMaintenanceCostPercentage ?? defaults.annualMaintenanceCostPercentage,
-)
+const maintenanceCost = ref({
+  yearlyPercentage:
+    investment?.maintenanceCost.yearlyPercentage ?? defaults.maintenanceCost.yearlyPercentage,
+})
 const cashOutFeePercentage = ref(investment?.cashOutFeePercentage ?? defaults.cashOutFeePercentage)
 
 const initialPurchasePrice = computed(() =>
@@ -78,7 +81,7 @@ const monthlyGrowthRatePercentage = computed(() =>
 )
 
 const monthlyMaintenanceCostPercentage = computed(() =>
-  getMonthlyInterestRatePercentage(annualMaintenanceCostPercentage.value, 'effective'),
+  getMonthlyInterestRatePercentage(maintenanceCost.value.yearlyPercentage, 'effective'),
 )
 
 const onCancel = () => {
@@ -103,8 +106,10 @@ const onSave = () => {
       yearlyPercentage: growthRate.value.yearlyPercentage,
       monthlyPercentage: monthlyGrowthRatePercentage.value,
     },
-    annualMaintenanceCostPercentage: annualMaintenanceCostPercentage.value,
-    monthlyMaintenanceCostPercentage: monthlyMaintenanceCostPercentage.value,
+    maintenanceCost: {
+      yearlyPercentage: maintenanceCost.value.yearlyPercentage,
+      monthlyPercentage: monthlyMaintenanceCostPercentage.value,
+    },
     cashOutFeePercentage: cashOutFeePercentage.value,
   })
   visible.value = false
@@ -127,8 +132,8 @@ watch(visible, (visible) => {
     growthRate.value.type = investment?.growthRate.type ?? defaults.growthRate.type
     growthRate.value.yearlyPercentage =
       investment?.growthRate.yearlyPercentage ?? defaults.growthRate.yearlyPercentage
-    annualMaintenanceCostPercentage.value =
-      investment?.annualMaintenanceCostPercentage ?? defaults.annualMaintenanceCostPercentage
+    maintenanceCost.value.yearlyPercentage =
+      investment?.maintenanceCost.yearlyPercentage ?? defaults.maintenanceCost.yearlyPercentage
     cashOutFeePercentage.value = investment?.cashOutFeePercentage ?? defaults.cashOutFeePercentage
   }
 })
@@ -312,7 +317,7 @@ watch(visible, (visible) => {
         <InputGroup>
           <InputNumber
             input-id="annual_maintenance_cost_percentage"
-            v-model="annualMaintenanceCostPercentage"
+            v-model="maintenanceCost.yearlyPercentage"
             :min="0"
             :max="100"
             :max-fraction-digits="2"

@@ -145,14 +145,14 @@ const onSaveInvestment = (investment: Investment) => {
       </template>
 
       <template #body="{ data: investment }: { data: Investment }">
-        <PercentageText :value="investment.annualMaintenanceCostPercentage" />
+        <PercentageText :value="investment.maintenanceCost.yearlyPercentage" />
         (effective)
       </template>
     </Column>
 
     <Column header="Monthly Maintenance Cost">
       <template #body="{ data: investment }: { data: Investment }">
-        <PercentageText :value="investment.monthlyMaintenanceCostPercentage" />
+        <PercentageText :value="investment.maintenanceCost.monthlyPercentage" />
       </template>
     </Column>
 

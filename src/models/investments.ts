@@ -1,3 +1,4 @@
+import type { Expense } from './expenses'
 import type { Fee } from './fees'
 import type { InterestRate } from './interest-rates'
 
@@ -8,7 +9,6 @@ export type Investment = {
   purchaseFee: Fee
   monthlyContribution: number
   growthRate: InterestRate
-  annualMaintenanceCostPercentage: number
-  monthlyMaintenanceCostPercentage: number
+  maintenanceCost: Expense
   cashOutFeePercentage: number
 }
