@@ -87,10 +87,7 @@ const onSaveLoan = (loan: Loan) => {
       </template>
 
       <template #body="{ data: loan }: { data: Loan }">
-        <InterestRateText
-          :annual-rate-percentage="loan.interestRate.yearlyPercentage"
-          :type="loan.interestRate.type"
-        />
+        <InterestRateText :value="loan.interestRate" />
       </template>
     </Column>
 

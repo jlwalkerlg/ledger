@@ -1,15 +1,14 @@
 <script setup lang="ts">
-import { NAMED_INTEREST_RATE_TYPES_MAP, type InterestRateType } from '@/models/interest-rates'
+import { NAMED_INTEREST_RATE_TYPES_MAP, type InterestRate } from '@/models/interest-rates'
 import { computed } from 'vue'
 
-const { annualRatePercentage, type } = defineProps<{
-  annualRatePercentage: number
-  type: InterestRateType
+const { value } = defineProps<{
+  value: InterestRate
 }>()
 
 const text = computed(
   () =>
-    `${NAMED_INTEREST_RATE_TYPES_MAP[type]} ${annualRatePercentage}% per year compounded monthly`,
+    `${NAMED_INTEREST_RATE_TYPES_MAP[value.type]} ${value.yearlyPercentage}% per year compounded monthly`,
 )
 </script>
 

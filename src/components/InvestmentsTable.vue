@@ -119,10 +119,7 @@ const onSaveInvestment = (investment: Investment) => {
       </template>
 
       <template #body="{ data: investment }: { data: Investment }">
-        <InterestRateText
-          :annual-rate-percentage="investment.growthRate.yearlyPercentage"
-          :type="investment.growthRate.type"
-        />
+        <InterestRateText :value="investment.growthRate" />
       </template>
     </Column>
 
