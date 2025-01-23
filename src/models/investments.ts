@@ -1,5 +1,5 @@
 import type { NamedValue } from '@/utils/types'
-import type { InterestRateType } from './interest-rates'
+import type { InterestRate } from './interest-rates'
 
 export type Investment = {
   id: string
@@ -7,9 +7,7 @@ export type Investment = {
   initialValue: number
   purchaseFee: PurchaseFee
   monthlyContribution: number
-  annualGrowthRatePercentage: number
-  monthlyGrowthRatePercentage: number
-  growthRateType: InterestRateType
+  growthRate: InterestRate
   annualMaintenanceCostPercentage: number
   monthlyMaintenanceCostPercentage: number
   cashOutFeePercentage: number

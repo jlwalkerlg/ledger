@@ -120,22 +120,22 @@ const onSaveInvestment = (investment: Investment) => {
 
       <template #body="{ data: investment }: { data: Investment }">
         <InterestRateText
-          :annual-rate-percentage="investment.annualGrowthRatePercentage"
-          :type="investment.growthRateType"
+          :annual-rate-percentage="investment.growthRate.yearlyPercentage"
+          :type="investment.growthRate.type"
         />
       </template>
     </Column>
 
     <Column header="Annual Growth Rate">
       <template #body="{ data: investment }: { data: Investment }">
-        <PercentageText :value="investment.annualGrowthRatePercentage" />
-        ({{ investment.growthRateType }})
+        <PercentageText :value="investment.growthRate.yearlyPercentage" />
+        ({{ investment.growthRate.type }})
       </template>
     </Column>
 
     <Column header="Monthly Growth Rate">
       <template #body="{ data: investment }: { data: Investment }">
-        <PercentageText :value="investment.monthlyGrowthRatePercentage" />
+        <PercentageText :value="investment.growthRate.monthlyPercentage" />
       </template>
     </Column>
 

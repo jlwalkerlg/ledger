@@ -29,8 +29,10 @@ const defaults = {
     flat: 0,
   },
   monthlyContribution: 0,
-  annualGrowthRatePercentage: 3,
-  growthRateType: 'effective' as InterestRateType,
+  growthRate: {
+    type: 'effective' as InterestRateType,
+    yearlyPercentage: 3,
+  },
   annualMaintenanceCostPercentage: 1,
   cashOutFeePercentage: 5,
 }
@@ -59,10 +61,10 @@ const purchaseFee = ref({
       : defaults.purchaseFee.flat,
 })
 const monthlyContribution = ref(investment?.monthlyContribution ?? defaults.monthlyContribution)
-const annualGrowthRatePercentage = ref(
-  investment?.annualGrowthRatePercentage ?? defaults.annualGrowthRatePercentage,
-)
-const growthRateType = ref(investment?.growthRateType ?? defaults.growthRateType)
+const growthRate = ref({
+  type: investment?.growthRate.type ?? defaults.growthRate.type,
+  yearlyPercentage: investment?.growthRate.yearlyPercentage ?? defaults.growthRate.yearlyPercentage,
+})
 const annualMaintenanceCostPercentage = ref(
   investment?.annualMaintenanceCostPercentage ?? defaults.annualMaintenanceCostPercentage,
 )
@@ -75,7 +77,7 @@ const initialPurchasePrice = computed(() =>
 )
 
 const monthlyGrowthRatePercentage = computed(() =>
-  getMonthlyInterestRatePercentage(annualGrowthRatePercentage.value, growthRateType.value),
+  getMonthlyInterestRatePercentage(growthRate.value.yearlyPercentage, growthRate.value.type),
 )
 
 const monthlyMaintenanceCostPercentage = computed(() =>
@@ -99,9 +101,11 @@ const onSave = () => {
           : purchaseFee.value.flat,
     },
     monthlyContribution: monthlyContribution.value,
-    annualGrowthRatePercentage: annualGrowthRatePercentage.value,
-    monthlyGrowthRatePercentage: monthlyGrowthRatePercentage.value,
-    growthRateType: growthRateType.value,
+    growthRate: {
+      type: growthRate.value.type,
+      yearlyPercentage: growthRate.value.yearlyPercentage,
+      monthlyPercentage: monthlyGrowthRatePercentage.value,
+    },
     annualMaintenanceCostPercentage: annualMaintenanceCostPercentage.value,
     monthlyMaintenanceCostPercentage: monthlyMaintenanceCostPercentage.value,
     cashOutFeePercentage: cashOutFeePercentage.value,
@@ -125,9 +129,11 @@ watch(visible, (visible) => {
           : defaults.purchaseFee.flat,
     }
     monthlyContribution.value = investment?.monthlyContribution ?? defaults.monthlyContribution
-    annualGrowthRatePercentage.value =
-      investment?.annualGrowthRatePercentage ?? defaults.annualGrowthRatePercentage
-    growthRateType.value = investment?.growthRateType ?? defaults.growthRateType
+    growthRate.value = {
+      type: investment?.growthRate.type ?? defaults.growthRate.type,
+      yearlyPercentage:
+        investment?.growthRate.yearlyPercentage ?? defaults.growthRate.yearlyPercentage,
+    }
     annualMaintenanceCostPercentage.value =
       investment?.annualMaintenanceCostPercentage ?? defaults.annualMaintenanceCostPercentage
     cashOutFeePercentage.value = investment?.cashOutFeePercentage ?? defaults.cashOutFeePercentage
@@ -261,27 +267,11 @@ watch(visible, (visible) => {
       </div>
 
       <div class="space-y-2">
-        <label for="annual_growth_rate_percentage">Annual Growth Rate</label>
-        <InputGroup>
-          <InputNumber
-            input-id="annual_growth_rate_percentage"
-            v-model="annualGrowthRatePercentage"
-            :max="100"
-            :max-fraction-digits="2"
-          />
-          <InputGroupAddon>%</InputGroupAddon>
-        </InputGroup>
-        <Message size="small" severity="secondary" variant="simple">
-          Enter the expected annual growth rate of your investment.
-        </Message>
-      </div>
-
-      <div class="space-y-2">
         <label for="growth_rate_type">Growth Rate Type</label>
         <InputGroup>
           <Select
             label-id="growth_rate_type"
-            v-model="growthRateType"
+            v-model="growthRate.type"
             :options="NAMED_INTEREST_RATE_TYPES"
             :option-label="(option: NamedValue<InterestRateType>) => option.name"
             :option-value="(option: NamedValue<InterestRateType>) => option.value"
@@ -289,6 +279,22 @@ watch(visible, (visible) => {
         </InputGroup>
         <Message size="small" severity="secondary" variant="simple">
           Select the type of growth rate.
+        </Message>
+      </div>
+
+      <div class="space-y-2">
+        <label for="annual_growth_rate_percentage">Annual Growth Rate</label>
+        <InputGroup>
+          <InputNumber
+            input-id="annual_growth_rate_percentage"
+            v-model="growthRate.yearlyPercentage"
+            :max="100"
+            :max-fraction-digits="2"
+          />
+          <InputGroupAddon>%</InputGroupAddon>
+        </InputGroup>
+        <Message size="small" severity="secondary" variant="simple">
+          Enter the expected annual growth rate of your investment.
         </Message>
       </div>
 

@@ -54,7 +54,7 @@ const getInvestmentBreakdownItem = (investment: Investment): InvestmentBreakdown
     monthlyContribution: investment.monthlyContribution,
     totalContributed: 0,
     interestAccrued: 0,
-    monthlyGrowthRatePercentage: investment.monthlyGrowthRatePercentage,
+    monthlyGrowthRatePercentage: investment.growthRate.monthlyPercentage,
     maintenanceCashSpent: 0,
     monthlyMaintenanceCostPercentage: investment.monthlyMaintenanceCostPercentage,
     monthlyMaintenanceCost: percentageOf(
