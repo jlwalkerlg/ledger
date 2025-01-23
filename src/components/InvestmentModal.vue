@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { type FeeType } from '@/models/fees'
-import { NAMED_INTEREST_RATE_TYPES, type InterestRateType } from '@/models/interest-rates'
+import { type InterestRateType } from '@/models/interest-rates'
 import { type Investment } from '@/models/investments'
 import { addPercentage, getMonthlyInterestRatePercentage } from '@/utils/maths'
-import type { NamedValue } from '@/utils/types'
 import uniqueId from 'lodash-es/uniqueId'
 import {
   Button,
@@ -13,10 +12,10 @@ import {
   InputNumber,
   InputText,
   Message,
-  Select,
 } from 'primevue'
 import { computed, ref, watch } from 'vue'
 import FeeTypeSelect from './FeeTypeSelect.vue'
+import InterestRateTypeSelect from './InterestRateTypeSelect.vue'
 
 const defaults = {
   name: 'House',
@@ -262,13 +261,7 @@ watch(visible, (visible) => {
       <div class="space-y-2">
         <label for="growth_rate_type">Growth Rate Type</label>
         <InputGroup>
-          <Select
-            label-id="growth_rate_type"
-            v-model="growthRate.type"
-            :options="NAMED_INTEREST_RATE_TYPES"
-            :option-label="(option: NamedValue<InterestRateType>) => option.name"
-            :option-value="(option: NamedValue<InterestRateType>) => option.value"
-          />
+          <InterestRateTypeSelect v-model="growthRate.type" label-id="growth_rate_type" />
         </InputGroup>
         <Message size="small" severity="secondary" variant="simple">
           Select the type of growth rate.
