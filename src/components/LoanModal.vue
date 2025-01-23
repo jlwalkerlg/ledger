@@ -3,15 +3,7 @@ import { type InterestRateType } from '@/models/interest-rates'
 import type { Loan } from '@/models/loans'
 import { getMonthlyInterestRatePercentage, getMonthlyLoanPayment } from '@/utils/maths'
 import uniqueId from 'lodash-es/uniqueId'
-import {
-  Button,
-  Dialog,
-  InputGroup,
-  InputGroupAddon,
-  InputNumber,
-  InputText,
-  Message,
-} from 'primevue'
+import { Button, Dialog, InputGroup, InputGroupAddon, InputNumber, InputText } from 'primevue'
 import { computed, ref, watch } from 'vue'
 import InterestRateTypeSelect from './InterestRateTypeSelect.vue'
 
@@ -95,6 +87,7 @@ watch(visible, (visible) => {
     :header="loan ? 'Edit Loan' : 'Add Loan'"
     :draggable="false"
     dismissableMask
+    class="w-full max-w-[1000px]"
   >
     <form class="space-y-4" @submit.prevent="onSave">
       <div class="space-y-2">
@@ -107,9 +100,6 @@ watch(visible, (visible) => {
             :pt="{ root: { autofocus: true } }"
           />
         </InputGroup>
-        <Message size="small" severity="secondary" variant="simple">
-          Enter a name for the loan.
-        </Message>
       </div>
 
       <div class="space-y-2">
@@ -123,9 +113,6 @@ watch(visible, (visible) => {
             :max-fraction-digits="2"
           />
         </InputGroup>
-        <Message size="small" severity="secondary" variant="simple">
-          Enter the loan amount.
-        </Message>
       </div>
 
       <div class="space-y-2">
@@ -133,9 +120,6 @@ watch(visible, (visible) => {
         <InputGroup>
           <InterestRateTypeSelect v-model="interestRate.type" label-id="interest_rate_type" />
         </InputGroup>
-        <Message size="small" severity="secondary" variant="simple">
-          Select the type of interest rate.
-        </Message>
       </div>
 
       <div class="space-y-2">
@@ -150,9 +134,6 @@ watch(visible, (visible) => {
           />
           <InputGroupAddon>%</InputGroupAddon>
         </InputGroup>
-        <Message size="small" severity="secondary" variant="simple">
-          Enter the annual interest rate for the loan.
-        </Message>
       </div>
 
       <div class="space-y-2">
@@ -166,9 +147,6 @@ watch(visible, (visible) => {
           />
           <InputGroupAddon>%</InputGroupAddon>
         </InputGroup>
-        <Message size="small" severity="secondary" variant="simple">
-          This is the monthly interest rate for the loan.
-        </Message>
       </div>
 
       <div class="space-y-2">
@@ -177,9 +155,6 @@ watch(visible, (visible) => {
           <InputNumber input-id="term" v-model="term" :max-fraction-digits="0" />
           <InputGroupAddon>years</InputGroupAddon>
         </InputGroup>
-        <Message size="small" severity="secondary" variant="simple">
-          Enter the term of the loan in years.
-        </Message>
       </div>
 
       <div class="space-y-2">
@@ -194,9 +169,6 @@ watch(visible, (visible) => {
             disabled
           />
         </InputGroup>
-        <Message size="small" severity="secondary" variant="simple">
-          This is how much you will pay back per month.
-        </Message>
       </div>
 
       <div class="flex items-center justify-end gap-4">

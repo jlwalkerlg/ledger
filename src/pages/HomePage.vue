@@ -7,7 +7,7 @@ import type { Investment } from '@/models/investments'
 import type { Loan } from '@/models/loans'
 import { getMonthlyInterestRatePercentage } from '@/utils/maths'
 import uniqueId from 'lodash-es/uniqueId'
-import { InputGroup, InputGroupAddon, InputNumber, Message, ScrollTop } from 'primevue'
+import { InputGroup, InputGroupAddon, InputNumber, ScrollTop } from 'primevue'
 import { computed, ref } from 'vue'
 import { useColumns } from './use-columns'
 import { useGroupBy } from './use-group-by'
@@ -22,7 +22,7 @@ const investments = ref<Investment[]>([
   {
     id: uniqueId(),
     name: 'ISA',
-    initialValue: 20000,
+    initialValue: 1000,
     purchaseFee: {
       type: 'flat',
       value: 0,
@@ -30,14 +30,22 @@ const investments = ref<Investment[]>([
     monthlyContribution: 0,
     growthRate: {
       type: 'nominal',
-      yearlyPercentage: 4.02,
-      monthlyPercentage: getMonthlyInterestRatePercentage(4.02, 'nominal'),
+      yearlyPercentage: 10,
+      monthlyPercentage: getMonthlyInterestRatePercentage(10, 'nominal'),
     },
     maintenanceCost: {
       yearlyPercentage: 0,
       monthlyPercentage: getMonthlyInterestRatePercentage(0, 'effective'),
     },
-    cashOutFeePercentage: 0,
+    cashOutFee: {
+      type: 'flat',
+      value: 1000,
+      growthRate: {
+        type: 'effective',
+        yearlyPercentage: 10,
+        monthlyPercentage: getMonthlyInterestRatePercentage(10, 'effective'),
+      },
+    },
   },
   // {
   //   id: uniqueId(),
@@ -112,9 +120,6 @@ const rows = computed(() => {
               <InputNumber input-id="years" v-model="years" :min="1" :max-fraction-digits="0" />
               <InputGroupAddon>years</InputGroupAddon>
             </InputGroup>
-            <Message size="small" severity="secondary" variant="simple">
-              Enter how many years you want to show.
-            </Message>
           </div>
         </div>
       </AppPanel>

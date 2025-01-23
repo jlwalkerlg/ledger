@@ -1,7 +1,8 @@
+import type { Fee } from '@/models/fees'
 import type { Investment } from '@/models/investments'
 import type { Loan } from '@/models/loans'
 import { toGbp } from '@/utils/formatters'
-import { percentageOf } from '@/utils/maths'
+import { addPercentage, percentageOf } from '@/utils/maths'
 import sumBy from 'lodash-es/sumBy'
 import { computed, type Ref } from 'vue'
 
@@ -18,8 +19,8 @@ type InvestmentBreakdownItem = {
   maintenanceCashSpent: number
   monthlyMaintenanceCostPercentage: number
   monthlyMaintenanceCost: number
-  cashOutFeePercentage: number
-  cashOutFee: number
+  cashOutFee: Fee
+  cashOutFeeAmount: number
   cashOutValue: number
 }
 
@@ -33,7 +34,7 @@ export type FormattedInvestmentBreakdownItem = {
   interestAccrued: string
   monthlyMaintenanceCost: string
   maintenanceCashSpent: string
-  cashOutFee: string
+  cashOutFeeAmount: string
   cashOutValue: string
 }
 
@@ -43,7 +44,10 @@ const getInvestmentBreakdownItem = (investment: Investment): InvestmentBreakdown
       ? percentageOf(investment.initialValue, investment.purchaseFee.value)
       : investment.purchaseFee.value
 
-  const cashOutFee = percentageOf(investment.initialValue, investment.cashOutFeePercentage)
+  const cashOutFeeAmount =
+    investment.cashOutFee.type === 'percentage'
+      ? percentageOf(investment.initialValue, investment.cashOutFee.value)
+      : investment.cashOutFee.value
 
   return {
     id: investment.id,
@@ -61,9 +65,9 @@ const getInvestmentBreakdownItem = (investment: Investment): InvestmentBreakdown
       investment.initialValue,
       investment.maintenanceCost.monthlyPercentage,
     ),
-    cashOutFeePercentage: investment.cashOutFeePercentage,
-    cashOutFee,
-    cashOutValue: investment.initialValue - cashOutFee,
+    cashOutFee: investment.cashOutFee,
+    cashOutFeeAmount,
+    cashOutValue: investment.initialValue - cashOutFeeAmount,
   }
 }
 
@@ -78,8 +82,17 @@ const advanceInvestment = (investment: InvestmentBreakdownItem) => {
     investment.value,
     investment.monthlyMaintenanceCostPercentage,
   )
-  investment.cashOutFee = percentageOf(investment.value, investment.cashOutFeePercentage)
-  investment.cashOutValue = investment.value - investment.cashOutFee
+
+  if (investment.cashOutFee.type === 'percentage') {
+    investment.cashOutFeeAmount = percentageOf(investment.value, investment.cashOutFee.value)
+  } else {
+    investment.cashOutFeeAmount = addPercentage(
+      investment.cashOutFeeAmount,
+      investment.cashOutFee.growthRate?.monthlyPercentage ?? 0,
+    )
+  }
+
+  investment.cashOutValue = investment.value - investment.cashOutFeeAmount
 }
 
 const formatInvestment = (
@@ -95,7 +108,7 @@ const formatInvestment = (
     interestAccrued: toGbp(investment.interestAccrued),
     monthlyMaintenanceCost: toGbp(investment.monthlyMaintenanceCost),
     maintenanceCashSpent: toGbp(investment.maintenanceCashSpent),
-    cashOutFee: toGbp(investment.cashOutFee),
+    cashOutFeeAmount: toGbp(investment.cashOutFeeAmount),
     cashOutValue: toGbp(investment.cashOutValue),
   }
 }
@@ -206,7 +219,9 @@ export const useBreakdown = (
       const profit =
         sumBy(investmentItems, (investment) => {
           const expenses =
-            investment.initialPurchaseFee + investment.cashOutFee + investment.maintenanceCashSpent
+            investment.initialPurchaseFee +
+            investment.cashOutFeeAmount +
+            investment.maintenanceCashSpent
 
           return investment.interestAccrued - expenses
         }) - sumBy(loanItems, (loan) => loan.interestAccrued + loan.paid)

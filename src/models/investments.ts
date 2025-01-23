@@ -10,5 +10,5 @@ export type Investment = {
   monthlyContribution: number
   growthRate: InterestRate
   maintenanceCost: Expense
-  cashOutFeePercentage: number
+  cashOutFee: Fee
 }

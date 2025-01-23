@@ -165,7 +165,17 @@ const onSaveInvestment = (investment: Investment) => {
       </template>
 
       <template #body="{ data: investment }: { data: Investment }">
-        <PercentageText :value="investment.cashOutFeePercentage" />
+        <PercentageText
+          v-if="investment.cashOutFee.type === 'percentage'"
+          :value="investment.cashOutFee.value"
+        />
+        <template v-else>
+          <CurrencyText :value="investment.cashOutFee.value" />
+          <span v-if="investment.cashOutFee.growthRate" class="lowercase">
+            +
+            <InterestRateText :value="investment.cashOutFee.growthRate" />
+          </span>
+        </template>
       </template>
     </Column>
 

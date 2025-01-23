@@ -167,7 +167,7 @@ defineProps<{
         />
         <Column
           v-if="columnCounts[`investment.${investment.id}.cash_out_fee`]"
-          :field="(row: FormattedBreakdownItem) => row.investments[index].cashOutFee"
+          :field="(row: FormattedBreakdownItem) => row.investments[index].cashOutFeeAmount"
         />
         <Column
           v-if="columnCounts[`investment.${investment.id}.cash_out_value`]"

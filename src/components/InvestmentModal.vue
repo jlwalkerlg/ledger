@@ -4,15 +4,7 @@ import { type InterestRateType } from '@/models/interest-rates'
 import { type Investment } from '@/models/investments'
 import { addPercentage, getMonthlyInterestRatePercentage } from '@/utils/maths'
 import uniqueId from 'lodash-es/uniqueId'
-import {
-  Button,
-  Dialog,
-  InputGroup,
-  InputGroupAddon,
-  InputNumber,
-  InputText,
-  Message,
-} from 'primevue'
+import { Button, Dialog, InputGroup, InputGroupAddon, InputNumber, InputText } from 'primevue'
 import { computed, ref, watch } from 'vue'
 import FeeTypeSelect from './FeeTypeSelect.vue'
 import InterestRateTypeSelect from './InterestRateTypeSelect.vue'
@@ -33,7 +25,15 @@ const defaults = {
   maintenanceCost: {
     yearlyPercentage: 1,
   },
-  cashOutFeePercentage: 5,
+  cashOutFee: {
+    type: 'percentage' as FeeType,
+    percentage: 5,
+    flat: 0,
+    growthRate: {
+      type: 'effective' as InterestRateType,
+      yearlyPercentage: 0,
+    },
+  },
 }
 
 const { investment } = defineProps<{
@@ -68,7 +68,21 @@ const maintenanceCost = ref({
   yearlyPercentage:
     investment?.maintenanceCost.yearlyPercentage ?? defaults.maintenanceCost.yearlyPercentage,
 })
-const cashOutFeePercentage = ref(investment?.cashOutFeePercentage ?? defaults.cashOutFeePercentage)
+const cashOutFee = ref({
+  type: investment?.cashOutFee.type ?? defaults.cashOutFee.type,
+  percentage:
+    investment?.cashOutFee.type === 'percentage'
+      ? investment.cashOutFee.value
+      : defaults.cashOutFee.percentage,
+  flat:
+    investment?.cashOutFee.type === 'flat' ? investment.cashOutFee.value : defaults.cashOutFee.flat,
+  growthRate: {
+    type: investment?.cashOutFee.growthRate?.type ?? defaults.cashOutFee.growthRate.type,
+    yearlyPercentage:
+      investment?.cashOutFee.growthRate?.yearlyPercentage ??
+      defaults.cashOutFee.growthRate.yearlyPercentage,
+  },
+})
 
 const initialPurchasePrice = computed(() =>
   purchaseFee.value.type === 'percentage'
@@ -82,6 +96,13 @@ const monthlyGrowthRatePercentage = computed(() =>
 
 const monthlyMaintenanceCostPercentage = computed(() =>
   getMonthlyInterestRatePercentage(maintenanceCost.value.yearlyPercentage, 'effective'),
+)
+
+const cashOutFeeMonthlyGrowthRatePercentage = computed(() =>
+  getMonthlyInterestRatePercentage(
+    cashOutFee.value.growthRate.yearlyPercentage,
+    cashOutFee.value.growthRate.type,
+  ),
 )
 
 const onCancel = () => {
@@ -110,7 +131,21 @@ const onSave = () => {
       yearlyPercentage: maintenanceCost.value.yearlyPercentage,
       monthlyPercentage: monthlyMaintenanceCostPercentage.value,
     },
-    cashOutFeePercentage: cashOutFeePercentage.value,
+    cashOutFee:
+      cashOutFee.value.type === 'percentage'
+        ? {
+            type: cashOutFee.value.type,
+            value: cashOutFee.value.percentage,
+          }
+        : {
+            type: cashOutFee.value.type,
+            value: cashOutFee.value.flat,
+            growthRate: {
+              type: cashOutFee.value.growthRate.type,
+              yearlyPercentage: cashOutFee.value.growthRate.yearlyPercentage,
+              monthlyPercentage: cashOutFeeMonthlyGrowthRatePercentage.value,
+            },
+          },
   })
   visible.value = false
 }
@@ -134,7 +169,20 @@ watch(visible, (visible) => {
       investment?.growthRate.yearlyPercentage ?? defaults.growthRate.yearlyPercentage
     maintenanceCost.value.yearlyPercentage =
       investment?.maintenanceCost.yearlyPercentage ?? defaults.maintenanceCost.yearlyPercentage
-    cashOutFeePercentage.value = investment?.cashOutFeePercentage ?? defaults.cashOutFeePercentage
+    cashOutFee.value.type = investment?.cashOutFee.type ?? defaults.cashOutFee.type
+    cashOutFee.value.percentage =
+      investment?.cashOutFee.type === 'percentage'
+        ? investment.cashOutFee.value
+        : defaults.cashOutFee.percentage
+    cashOutFee.value.flat =
+      investment?.cashOutFee.type === 'flat'
+        ? investment.cashOutFee.value
+        : defaults.cashOutFee.flat
+    cashOutFee.value.growthRate.type =
+      investment?.cashOutFee.growthRate?.type ?? defaults.cashOutFee.growthRate.type
+    cashOutFee.value.growthRate.yearlyPercentage =
+      investment?.cashOutFee.growthRate?.yearlyPercentage ??
+      defaults.cashOutFee.growthRate.yearlyPercentage
   }
 })
 </script>
@@ -146,6 +194,7 @@ watch(visible, (visible) => {
     :header="investment ? 'Edit Investment' : 'Add Investment'"
     :draggable="false"
     dismissableMask
+    class="w-full max-w-[1000px]"
   >
     <form class="space-y-4" @submit.prevent="onSave">
       <div class="space-y-2">
@@ -158,9 +207,6 @@ watch(visible, (visible) => {
             :pt="{ root: { autofocus: true } }"
           />
         </InputGroup>
-        <Message size="small" severity="secondary" variant="simple">
-          Enter a name for the investment.
-        </Message>
       </div>
 
       <div class="space-y-2">
@@ -174,9 +220,6 @@ watch(visible, (visible) => {
             :max-fraction-digits="2"
           />
         </InputGroup>
-        <Message size="small" severity="secondary" variant="simple">
-          Enter the initial value of your investment.
-        </Message>
       </div>
 
       <div class="space-y-2">
@@ -184,9 +227,6 @@ watch(visible, (visible) => {
         <InputGroup>
           <FeeTypeSelect v-model="purchaseFee.type" label-id="purchase_fee_type" />
         </InputGroup>
-        <Message size="small" severity="secondary" variant="simple">
-          Select the type of growth rate.
-        </Message>
       </div>
 
       <div v-if="purchaseFee.type === 'percentage'" class="space-y-2">
@@ -201,10 +241,6 @@ watch(visible, (visible) => {
           />
           <InputGroupAddon>%</InputGroupAddon>
         </InputGroup>
-        <Message size="small" severity="secondary" variant="simple">
-          Enter the fee associated with purchasing the investment as a percentage of the investment
-          value.
-        </Message>
       </div>
 
       <div v-if="purchaseFee.type === 'flat'" class="space-y-2">
@@ -219,9 +255,6 @@ watch(visible, (visible) => {
             :max-fraction-digits="2"
           />
         </InputGroup>
-        <Message size="small" severity="secondary" variant="simple">
-          Enter the fee associated with purchasing the investment.
-        </Message>
       </div>
 
       <div class="space-y-2">
@@ -236,10 +269,6 @@ watch(visible, (visible) => {
             :max-fraction-digits="2"
           />
         </InputGroup>
-        <Message size="small" severity="secondary" variant="simple">
-          This is the total amount that it cost to buy the investment, including its initial value
-          and any purchase fee.
-        </Message>
       </div>
 
       <div class="space-y-2">
@@ -253,9 +282,6 @@ watch(visible, (visible) => {
             :max-fraction-digits="2"
           />
         </InputGroup>
-        <Message size="small" severity="secondary" variant="simple">
-          Enter any additional contribution you'll invest into the investment on a monthly basis.
-        </Message>
       </div>
 
       <div class="space-y-2">
@@ -263,9 +289,6 @@ watch(visible, (visible) => {
         <InputGroup>
           <InterestRateTypeSelect v-model="growthRate.type" label-id="growth_rate_type" />
         </InputGroup>
-        <Message size="small" severity="secondary" variant="simple">
-          Select the type of growth rate.
-        </Message>
       </div>
 
       <div class="space-y-2">
@@ -279,9 +302,6 @@ watch(visible, (visible) => {
           />
           <InputGroupAddon>%</InputGroupAddon>
         </InputGroup>
-        <Message size="small" severity="secondary" variant="simple">
-          Enter the expected annual growth rate of your investment.
-        </Message>
       </div>
 
       <div class="space-y-2">
@@ -295,9 +315,6 @@ watch(visible, (visible) => {
           />
           <InputGroupAddon>%</InputGroupAddon>
         </InputGroup>
-        <Message size="small" severity="secondary" variant="simple">
-          This is the expected monthly growth rate of your investment.
-        </Message>
       </div>
 
       <div class="space-y-2">
@@ -312,11 +329,6 @@ watch(visible, (visible) => {
           />
           <InputGroupAddon>%</InputGroupAddon>
         </InputGroup>
-        <Message size="small" severity="secondary" variant="simple">
-          Enter any annual maintenance cost associated with holding the investment as a percentage
-          of the investment. For example, for a property, this could be how much you expect to spend
-          on repairs each year. This is expected to be an effective rate compounded monthly.
-        </Message>
       </div>
 
       <div class="space-y-2">
@@ -330,29 +342,85 @@ watch(visible, (visible) => {
           />
           <InputGroupAddon>%</InputGroupAddon>
         </InputGroup>
-        <Message size="small" severity="secondary" variant="simple">
-          This is the cost of maintaining the investment each month as a percentage of the
-          investment.
-        </Message>
       </div>
 
       <div class="space-y-2">
-        <label for="cash_out_fee_percentage">Cash Out Fee</label>
+        <label for="cash_out_fee_type">Cash Out Fee Type</label>
         <InputGroup>
-          <InputNumber
-            input-id="cash_out_fee_percentage"
-            v-model="cashOutFeePercentage"
-            :min="0"
-            :max="100"
-            :max-fraction-digits="2"
-          />
-          <InputGroupAddon>%</InputGroupAddon>
+          <FeeTypeSelect v-model="cashOutFee.type" input-id="cash_out_fee_type" />
         </InputGroup>
-        <Message size="small" severity="secondary" variant="simple">
-          Enter the fee associated with cashing out on the investment as a percentage of the
-          investment value. For example, for a property, this could include solicitor fees.
-        </Message>
       </div>
+
+      <template v-if="cashOutFee.type === 'percentage'">
+        <div class="space-y-2">
+          <label for="cash_out_fee_percentage">Cash Out Fee</label>
+          <InputGroup>
+            <InputNumber
+              input-id="cash_out_fee_percentage"
+              v-model="cashOutFee.percentage"
+              :min="0"
+              :max="100"
+              :max-fraction-digits="2"
+            />
+            <InputGroupAddon>%</InputGroupAddon>
+          </InputGroup>
+        </div>
+      </template>
+
+      <template v-else>
+        <div class="space-y-2">
+          <label for="cash_out_fee_flat">Cash Out Fee</label>
+          <InputGroup>
+            <InputGroupAddon>£</InputGroupAddon>
+            <InputNumber
+              input-id="cash_out_fee_flat"
+              v-model="cashOutFee.flat"
+              :min-fraction-digits="2"
+              :max-fraction-digits="2"
+            />
+          </InputGroup>
+        </div>
+
+        <div class="space-y-2">
+          <label for="cash_out_fee_growth_rate_type">Cash Out Fee Growth Rate Type</label>
+          <InputGroup>
+            <InterestRateTypeSelect
+              v-model="cashOutFee.growthRate.type"
+              input-id="cash_out_fee_growth_rate_type"
+            />
+          </InputGroup>
+        </div>
+
+        <div class="space-y-2">
+          <label for="cash_out_fee_annual_growth_rate_percentage">
+            Cash Out Fee Annual Growth Rate
+          </label>
+          <InputGroup>
+            <InputNumber
+              input-id="cash_out_fee_annual_growth_rate_percentage"
+              v-model="cashOutFee.growthRate.yearlyPercentage"
+              :max="100"
+              :max-fraction-digits="2"
+            />
+            <InputGroupAddon>%</InputGroupAddon>
+          </InputGroup>
+        </div>
+
+        <div class="space-y-2">
+          <label for="cash_out_fee_monthly_growth_rate_percentage">
+            Cash Out Fee Monthly Growth Rate
+          </label>
+          <InputGroup>
+            <InputNumber
+              input-id="cash_out_fee_monthly_growth_rate_percentage"
+              :model-value="cashOutFeeMonthlyGrowthRatePercentage"
+              disabled
+              :max-fraction-digits="2"
+            />
+            <InputGroupAddon>%</InputGroupAddon>
+          </InputGroup>
+        </div>
+      </template>
 
       <div class="flex items-center justify-end gap-4">
         <Button type="button" variant="outlined" @click="onCancel">Cancel</Button>
