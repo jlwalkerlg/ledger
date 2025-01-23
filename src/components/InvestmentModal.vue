@@ -114,23 +114,19 @@ watch(visible, (visible) => {
   if (visible) {
     name.value = investment?.name ?? defaults.name
     initialValue.value = investment?.initialValue ?? defaults.initialValue
-    purchaseFee.value = {
-      type: investment?.purchaseFee.type ?? defaults.purchaseFee.type,
-      percentage:
-        investment?.purchaseFee.type === 'percentage'
-          ? investment.purchaseFee.value
-          : defaults.purchaseFee.percentage,
-      flat:
-        investment?.purchaseFee.type === 'flat'
-          ? investment.purchaseFee.value
-          : defaults.purchaseFee.flat,
-    }
+    purchaseFee.value.type = investment?.purchaseFee.type ?? defaults.purchaseFee.type
+    purchaseFee.value.percentage =
+      investment?.purchaseFee.type === 'percentage'
+        ? investment.purchaseFee.value
+        : defaults.purchaseFee.percentage
+    purchaseFee.value.flat =
+      investment?.purchaseFee.type === 'flat'
+        ? investment.purchaseFee.value
+        : defaults.purchaseFee.flat
     monthlyContribution.value = investment?.monthlyContribution ?? defaults.monthlyContribution
-    growthRate.value = {
-      type: investment?.growthRate.type ?? defaults.growthRate.type,
-      yearlyPercentage:
-        investment?.growthRate.yearlyPercentage ?? defaults.growthRate.yearlyPercentage,
-    }
+    growthRate.value.type = investment?.growthRate.type ?? defaults.growthRate.type
+    growthRate.value.yearlyPercentage =
+      investment?.growthRate.yearlyPercentage ?? defaults.growthRate.yearlyPercentage
     annualMaintenanceCostPercentage.value =
       investment?.annualMaintenanceCostPercentage ?? defaults.annualMaintenanceCostPercentage
     cashOutFeePercentage.value = investment?.cashOutFeePercentage ?? defaults.cashOutFeePercentage

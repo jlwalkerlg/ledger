@@ -1,12 +1,10 @@
-import type { InterestRateType } from './interest-rates'
+import type { InterestRate } from './interest-rates'
 
 export type Loan = {
   id: string
   name: string
   amount: number
-  annualInterestRatePercentage: number
-  monthlyInterestRatePercentage: number
-  interestRateType: InterestRateType
+  interestRate: InterestRate
   term: number
   monthlyPayment: number
 }

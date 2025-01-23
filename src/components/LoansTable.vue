@@ -88,22 +88,22 @@ const onSaveLoan = (loan: Loan) => {
 
       <template #body="{ data: loan }: { data: Loan }">
         <InterestRateText
-          :annual-rate-percentage="loan.annualInterestRatePercentage"
-          :type="loan.interestRateType"
+          :annual-rate-percentage="loan.interestRate.yearlyPercentage"
+          :type="loan.interestRate.type"
         />
       </template>
     </Column>
 
     <Column header="Annual Interest Rate">
       <template #body="{ data: loan }: { data: Loan }">
-        <PercentageText :value="loan.annualInterestRatePercentage" />
-        ({{ loan.interestRateType }})
+        <PercentageText :value="loan.interestRate.yearlyPercentage" />
+        ({{ loan.interestRate.type }})
       </template>
     </Column>
 
     <Column header="Monthly Interest Rate">
       <template #body="{ data: loan }: { data: Loan }">
-        <PercentageText :value="loan.monthlyInterestRatePercentage" />
+        <PercentageText :value="loan.interestRate.monthlyPercentage" />
       </template>
     </Column>
 

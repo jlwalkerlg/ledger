@@ -18,8 +18,10 @@ import { computed, ref, watch } from 'vue'
 const defaults = {
   name: 'Mortgage',
   amount: 130000,
-  annualInterestRatePercentage: 4.5,
-  interestRateType: 'nominal' as InterestRateType,
+  interestRate: {
+    type: 'nominal' as InterestRateType,
+    yearlyPercentage: 4.5,
+  },
   term: 10,
 }
 
@@ -35,21 +37,21 @@ const visible = defineModel<boolean>('visible')
 
 const name = ref(loan?.name ?? defaults.name)
 const amount = ref(loan?.amount ?? defaults.amount)
-const annualInterestRatePercentage = ref(
-  loan?.annualInterestRatePercentage ?? defaults.annualInterestRatePercentage,
-)
-const interestRateType = ref(loan?.interestRateType ?? defaults.interestRateType)
+const interestRate = ref({
+  type: loan?.interestRate.type ?? defaults.interestRate.type,
+  yearlyPercentage: loan?.interestRate.yearlyPercentage ?? defaults.interestRate.yearlyPercentage,
+})
 const term = ref(loan?.term ?? defaults.term)
 
 const monthlyInterestRatePercentage = computed(() =>
-  getMonthlyInterestRatePercentage(annualInterestRatePercentage.value, interestRateType.value),
+  getMonthlyInterestRatePercentage(interestRate.value.yearlyPercentage, interestRate.value.type),
 )
 
 const monthlyPayment = computed(() =>
   getMonthlyLoanPayment(
     amount.value,
-    annualInterestRatePercentage.value,
-    interestRateType.value,
+    interestRate.value.yearlyPercentage,
+    interestRate.value.type,
     term.value,
   ),
 )
@@ -63,9 +65,11 @@ const onSave = () => {
     id: loan?.id ?? uniqueId(),
     name: name.value,
     amount: amount.value,
-    annualInterestRatePercentage: annualInterestRatePercentage.value,
-    monthlyInterestRatePercentage: monthlyInterestRatePercentage.value,
-    interestRateType: interestRateType.value,
+    interestRate: {
+      type: interestRate.value.type,
+      yearlyPercentage: interestRate.value.yearlyPercentage,
+      monthlyPercentage: monthlyInterestRatePercentage.value,
+    },
     term: term.value,
     monthlyPayment: monthlyPayment.value,
   })
@@ -76,9 +80,9 @@ watch(visible, (visible) => {
   if (visible) {
     name.value = loan?.name ?? defaults.name
     amount.value = loan?.amount ?? defaults.amount
-    annualInterestRatePercentage.value =
-      loan?.annualInterestRatePercentage ?? defaults.annualInterestRatePercentage
-    interestRateType.value = loan?.interestRateType ?? defaults.interestRateType
+    interestRate.value.type = loan?.interestRate.type ?? defaults.interestRate.type
+    interestRate.value.yearlyPercentage =
+      loan?.interestRate.yearlyPercentage ?? defaults.interestRate.yearlyPercentage
     term.value = loan?.term ?? defaults.term
   }
 })
@@ -125,11 +129,27 @@ watch(visible, (visible) => {
       </div>
 
       <div class="space-y-2">
+        <label for="interest_rate_type">Interest Rate Type</label>
+        <InputGroup>
+          <Select
+            label-id="interest_rate_type"
+            v-model="interestRate.type"
+            :options="NAMED_INTEREST_RATE_TYPES"
+            :option-label="(option) => option.name"
+            :option-value="(option) => option.value"
+          />
+        </InputGroup>
+        <Message size="small" severity="secondary" variant="simple">
+          Select the type of interest rate.
+        </Message>
+      </div>
+
+      <div class="space-y-2">
         <label for="annual_interest_rate_percentage">Annual Interest Rate</label>
         <InputGroup>
           <InputNumber
             input-id="annual_interest_rate_percentage"
-            v-model="annualInterestRatePercentage"
+            v-model="interestRate.yearlyPercentage"
             :min="0"
             :max="100"
             :max-fraction-digits="2"
@@ -138,22 +158,6 @@ watch(visible, (visible) => {
         </InputGroup>
         <Message size="small" severity="secondary" variant="simple">
           Enter the annual interest rate for the loan.
-        </Message>
-      </div>
-
-      <div class="space-y-2">
-        <label for="interest_rate_type">Interest Rate Type</label>
-        <InputGroup>
-          <Select
-            label-id="interest_rate_type"
-            v-model="interestRateType"
-            :options="NAMED_INTEREST_RATE_TYPES"
-            :option-label="(option) => option.name"
-            :option-value="(option) => option.value"
-          />
-        </InputGroup>
-        <Message size="small" severity="secondary" variant="simple">
-          Select the type of interest rate.
         </Message>
       </div>
 
