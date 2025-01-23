@@ -123,36 +123,17 @@ const onSaveInvestment = (investment: Investment) => {
       </template>
     </Column>
 
-    <Column header="Annual Growth Rate">
-      <template #body="{ data: investment }: { data: Investment }">
-        <PercentageText :value="investment.growthRate.yearlyPercentage" />
-        ({{ investment.growthRate.type }})
-      </template>
-    </Column>
-
-    <Column header="Monthly Growth Rate">
-      <template #body="{ data: investment }: { data: Investment }">
-        <PercentageText :value="investment.growthRate.monthlyPercentage" />
-      </template>
-    </Column>
-
     <Column>
       <template #header>
         <div>
-          <span class="p-datatable-column-title">Annual Maintenance Cost </span>
+          <span class="p-datatable-column-title">Maintenance Cost </span>
           <InfoIcon :tooltip="glossary.investments.annual_maintenance_cost" />
         </div>
       </template>
 
       <template #body="{ data: investment }: { data: Investment }">
-        <PercentageText :value="investment.maintenanceCost.yearlyPercentage" />
-        (effective)
-      </template>
-    </Column>
-
-    <Column header="Monthly Maintenance Cost">
-      <template #body="{ data: investment }: { data: Investment }">
-        <PercentageText :value="investment.maintenanceCost.monthlyPercentage" />
+        <PercentageText :value="investment.maintenanceCost.yearlyPercentage" /> per year
+        (<PercentageText :value="investment.maintenanceCost.monthlyPercentage" /> per month)
       </template>
     </Column>
 

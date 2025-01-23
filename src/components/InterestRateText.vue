@@ -8,7 +8,7 @@ const { value } = defineProps<{
 
 const text = computed(
   () =>
-    `${NAMED_INTEREST_RATE_TYPES_MAP[value.type]} ${value.yearlyPercentage}% per year compounded monthly`,
+    `${NAMED_INTEREST_RATE_TYPES_MAP[value.type]} ${value.yearlyPercentage.toFixed(2)}% per year compounded monthly at ${value.monthlyPercentage.toFixed(2)}%`,
 )
 </script>
 
