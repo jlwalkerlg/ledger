@@ -5,7 +5,7 @@ import InvestmentsTable from '@/components/InvestmentsTable.vue'
 import LoansTable from '@/components/LoansTable.vue'
 import type { Investment } from '@/models/investments'
 import type { Loan } from '@/models/loans'
-import { getMonthlyInterestRatePercentage } from '@/utils/maths'
+import { getMonthlyInterestRatePercentage, getMonthlyLoanPayment } from '@/utils/maths'
 import uniqueId from 'lodash-es/uniqueId'
 import { InputGroup, InputGroupAddon, InputNumber, ScrollTop } from 'primevue'
 import { computed, ref } from 'vue'
@@ -16,74 +16,47 @@ import BreakdownTable from '@/components/BreakdownTable.vue'
 import ColumnSelect from '@/components/ColumnSelect.vue'
 import GroupBySelect from '@/components/GroupBySelect.vue'
 
-const years = ref(5)
+const years = ref(10)
 
 const investments = ref<Investment[]>([
   {
     id: uniqueId(),
-    name: 'ISA',
-    initialValue: 1000,
+    name: 'House',
+    initialValue: 100000,
     purchaseFee: {
-      type: 'flat',
-      value: 0,
+      type: 'percentage',
+      value: 5,
     },
     monthlyContribution: 0,
     growthRate: {
       type: 'nominal',
-      yearlyPercentage: 10,
-      monthlyPercentage: getMonthlyInterestRatePercentage(10, 'nominal'),
+      yearlyPercentage: 5,
+      monthlyPercentage: getMonthlyInterestRatePercentage(5, 'nominal'),
     },
     maintenanceCost: {
-      yearlyPercentage: 0,
-      monthlyPercentage: getMonthlyInterestRatePercentage(0, 'effective'),
+      yearlyPercentage: 1,
+      monthlyPercentage: getMonthlyInterestRatePercentage(1, 'effective'),
     },
     cashOutFee: {
-      type: 'flat',
-      value: 1000,
-      growthRate: {
-        type: 'effective',
-        yearlyPercentage: 10,
-        monthlyPercentage: getMonthlyInterestRatePercentage(10, 'effective'),
-      },
+      type: 'percentage',
+      value: 5,
     },
   },
-  // {
-  //   id: uniqueId(),
-  //   name: 'House',
-  //   initialValue: 100000,
-  //   purchaseFeeType: 'percentage',
-  //   purchaseFeePercentage: 0,
-  //   purchaseFeeAmount: 0,
-  //   monthlyContribution: 0,
-  //   annualGrowthRatePercentage: 1,
-  //   growthRateType: 'effective',
-  //   monthlyGrowthRatePercentage: getMonthlyInterestRatePercentage(1, 'effective'),
-  //   annualMaintenanceCostPercentage: 0,
-  //   monthlyMaintenanceCostPercentage: getMonthlyInterestRatePercentage(0, 'effective'),
-  //   cashOutFeePercentage: 0,
-  // },
 ])
 
 const loans = ref<Loan[]>([
-  // {
-  //   id: uniqueId(),
-  //   name: 'Mortgage',
-  //   amount: 80000,
-  //   annualInterestRatePercentage: 4.5,
-  //   interestRateType: 'nominal',
-  //   monthlyInterestRatePercentage: getMonthlyInterestRatePercentage(4.5, 'nominal'),
-  //   term: 15,
-  //   monthlyPayment: getMonthlyLoanPayment(80000, 4.5, 'nominal', 15),
-  // },
-  // {
-  //   name: 'Loan',
-  //   amount: 2000,
-  //   annualInterestRatePercentage: 10,
-  //   monthlyInterestRatePercentage: getMonthlyInterestRatePercentage(10, 'effective'),
-  //   interestRateType: 'effective',
-  //   term: 3,
-  //   monthlyPayment: getMonthlyLoanPayment(2000, 10, 'effective', 3),
-  // },
+  {
+    id: uniqueId(),
+    name: 'Mortgage',
+    amount: 60000,
+    interestRate: {
+      type: 'nominal',
+      yearlyPercentage: 4.5,
+      monthlyPercentage: getMonthlyInterestRatePercentage(4.5, 'nominal'),
+    },
+    term: 5,
+    monthlyPayment: getMonthlyLoanPayment(60000, 4.5, 'nominal', 5),
+  },
 ])
 
 const {
